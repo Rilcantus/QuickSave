@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Run — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 text-center">
+
+  <p class="text-5xl mb-4">⚠️</p>
+  <h1 class="text-2xl font-bold text-white mb-2">Delete "{{ descriptor.name }}"?</h1>
+  <p class="text-gray-400 mb-2">
+    This will remove the run label from all sessions. The sessions and journal entries themselves won't be deleted.
+  </p>
+  <p class="text-gray-600 text-sm mb-8">{{ descriptor.sessions.count }} session{{ descriptor.sessions.count|pluralize }} will be affected.</p>
+
+  <form method="POST" class="flex gap-3 justify-center">
+    {% csrf_token %}
+    <button type="submit"
+      class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2.5 rounded-lg transition">
+      Yes, delete it
+    </button>
+    <a href="{% url 'game_detail' game.pk %}"
+       class="bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold px-6 py-2.5 rounded-lg transition">
+      Cancel
+    </a>
+  </form>
+
+</div>
+{% endblock %}

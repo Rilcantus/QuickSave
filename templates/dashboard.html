@@ -46,6 +46,7 @@
       <div>
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-white">Recent Sessions</h2>
+          <a href="{% url 'session_history' %}" class="text-brand-400 text-sm hover:underline">View all</a>
         </div>
 
         {% if recent_sessions %}

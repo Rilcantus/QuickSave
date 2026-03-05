@@ -105,3 +105,39 @@ def descriptor_detail(request, game_pk, pk):
         'descriptor': descriptor,
         'sessions': sessions,
     })
+
+@login_required
+def descriptor_edit(request, game_pk, pk):
+    game = get_object_or_404(Game, pk=game_pk, user=request.user)
+    descriptor = get_object_or_404(Descriptor, pk=pk, game=game)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            descriptor.name = name
+            descriptor.save()
+            messages.success(request, f"Run renamed to '{name}'!")
+            return redirect('game_detail', pk=game.pk)
+        else:
+            messages.error(request, "Name can't be empty.")
+
+    return render(request, 'games/descriptor_form.html', {
+        'game': game,
+        'descriptor': descriptor,
+    })
+
+@login_required
+def descriptor_delete(request, game_pk, pk):
+    game = get_object_or_404(Game, pk=game_pk, user=request.user)
+    descriptor = get_object_or_404(Descriptor, pk=pk, game=game)
+
+    if request.method == 'POST':
+        name = descriptor.name
+        descriptor.delete()
+        messages.success(request, f"'{name}' deleted.")
+        return redirect('game_detail', pk=game.pk)
+
+    return render(request, 'games/descriptor_confirm_delete.html', {
+        'game': game,
+        'descriptor': descriptor,
+    })

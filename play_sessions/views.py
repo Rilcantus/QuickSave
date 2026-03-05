@@ -93,3 +93,23 @@ def session_end_prompt(request, pk):
     return render(request, 'play_sessions/session_end_prompt.html', {
         'session': session,
     })
+
+@login_required
+def session_history(request):
+    from games.models import Game
+    sessions = Session.objects.filter(
+        game__user=request.user,
+        ended_at__isnull=False
+    ).select_related('game', 'descriptor').order_by('-started_at')
+
+    # Filter by game if requested
+    game_filter = request.GET.get('game')
+    games = Game.objects.filter(user=request.user)
+    if game_filter:
+        sessions = sessions.filter(game__pk=game_filter)
+
+    return render(request, 'play_sessions/session_history.html', {
+        'sessions': sessions,
+        'games': games,
+        'game_filter': game_filter,
+    })

@@ -80,11 +80,21 @@
     </div>
     <div class="flex flex-wrap gap-2 mb-8">
       {% for descriptor in game.descriptors.all %}
-        <a href="{% url 'descriptor_detail' game.pk descriptor.pk %}"
-          class="flex items-center gap-2 bg-gray-900 border border-gray-800 hover:border-brand-500 rounded-xl px-4 py-2.5 transition group">
-          <span class="text-white font-medium text-sm group-hover:text-brand-400 transition">{{ descriptor.name }}</span>
-          <span class="text-xs text-gray-600">{{ descriptor.sessions.count }} session{{ descriptor.sessions.count|pluralize }}</span>
-        </a>
+        <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-xl px-4 py-2.5 transition">
+          <a href="{% url 'descriptor_detail' game.pk descriptor.pk %}"
+            class="flex items-center gap-2 flex-1 group">
+            <span class="text-white font-medium text-sm group-hover:text-brand-400 transition">{{ descriptor.name }}</span>
+            <span class="text-xs text-gray-600">{{ descriptor.sessions.count }} session{{ descriptor.sessions.count|pluralize }}</span>
+          </a>
+          <a href="{% url 'descriptor_edit' game.pk descriptor.pk %}"
+             class="text-gray-600 hover:text-gray-300 text-xs px-2 py-1 rounded transition">
+            ✏️
+          </a>
+          <a href="{% url 'descriptor_delete' game.pk descriptor.pk %}"
+             class="text-gray-600 hover:text-red-400 text-xs px-2 py-1 rounded transition">
+      🗑️
+          </a>
+        </div>
       {% endfor %}
     </div>
   {% endif %}

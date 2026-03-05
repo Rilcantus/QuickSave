@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Session History — QuickSave{% endblock %}
+
+{% block content %}
+
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-white">Session History</h1>
+    <span class="text-gray-500 text-sm">{{ sessions.count }} session{{ sessions.count|pluralize }}</span>
+  </div>
+
+  <!-- Filter by game -->
+  <div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'session_history' %}"
+       class="text-sm px-3 py-1.5 rounded-lg transition
+         {% if not game_filter %}bg-brand-500 text-white{% else %}bg-gray-800 text-gray-400 hover:text-white{% endif %}">
+      All Games
+    </a>
+    {% for game in games %}
+      <a href="{% url 'session_history' %}?game={{ game.pk }}"
+         class="text-sm px-3 py-1.5 rounded-lg transition
+           {% if game_filter == game.pk|stringformat:'s' %}bg-brand-500 text-white{% else %}bg-gray-800 text-gray-400 hover:text-white{% endif %}">
+        {{ game.title }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if sessions %}
+    <div class="space-y-3 pb-16">
+      {% for session in sessions %}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <a href="{% url 'game_detail' session.game.pk %}"
+                 class="text-white font-semibold hover:text-brand-400 transition">
+                {{ session.game.title }}
+              </a>
+              {% if session.descriptor %}
+                <a href="{% url 'descriptor_detail' session.game.pk session.descriptor.pk %}"
+                   class="ml-2 text-xs bg-gray-800 text-brand-400 px-2 py-0.5 rounded-full hover:bg-gray-700 transition">
+                  {{ session.descriptor.name }}
+                </a>
+              {% endif %}
+              <p class="text-gray-500 text-sm mt-0.5">
+                {{ session.started_at|date:"F j, Y · g:i A" }}
+                {% if session.duration_display %}
+                  · <span class="text-brand-400">{{ session.duration_display }}</span>
+                {% endif %}
+              </p>
+              {% if session.custom_field_values.all %}
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {% for val in session.custom_field_values.all %}
+                    <span class="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
+                      {{ val.field_definition.name }}: <span class="text-gray-300">{{ val.value }}</span>
+                    </span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if session.notes %}
+                <p class="text-gray-600 text-sm italic mt-2">{{ session.notes }}</p>
+              {% endif %}
+            </div>
+            <div class="ml-4 shrink-0">
+              {% if session.journal_entry %}
+                <a href="{% url 'journal_detail' session.journal_entry.pk %}"
+                   class="text-xs text-gray-500 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded-full transition">
+                  📓 Journaled
+                </a>
+              {% else %}
+                <a href="{% url 'journal_create_for_session' session.pk %}"
+                   class="text-xs text-gray-600 hover:text-brand-400 transition">
+                  + Journal
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center py-20 bg-gray-900 border border-gray-800 rounded-2xl">
+      <p class="text-4xl mb-3">🕹️</p>
+      <p class="text-gray-400">No sessions yet.</p>
+    </div>
+  {% endif %}
+
+{% endblock %}
