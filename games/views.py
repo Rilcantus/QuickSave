@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Game, CustomFieldDefinition
+from .models import Game, CustomFieldDefinition, Descriptor
 from .forms import GameForm, CustomFieldDefinitionForm
 
 
@@ -93,4 +93,15 @@ def custom_field_delete(request, pk):
     return render(request, 'games/custom_field_confirm_delete.html', {
         'field': field,
         'game': game,
+    })
+
+@login_required
+def descriptor_detail(request, game_pk, pk):
+    game = get_object_or_404(Game, pk=game_pk, user=request.user)
+    descriptor = get_object_or_404(Descriptor, pk=pk, game=game)
+    sessions = descriptor.sessions.all()
+    return render(request, 'games/descriptor_detail.html', {
+        'game': game,
+        'descriptor': descriptor,
+        'sessions': sessions,
     })

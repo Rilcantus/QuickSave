@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/delete/', views.game_delete, name='game_delete'),
     path('<int:game_pk>/fields/add/', views.custom_field_create, name='custom_field_create'),
     path('fields/<int:pk>/delete/', views.custom_field_delete, name='custom_field_delete'),
+    path('<int:game_pk>/runs/<int:pk>/', views.descriptor_detail, name='descriptor_detail'),
 ]

@@ -73,6 +73,22 @@
     </div>
   {% endif %}
 
+  <!-- Runs -->
+  {% if game.descriptors.all %}
+    <div class="flex items-center justify-between mb-4 mt-8">
+      <h2 class="text-lg font-semibold text-white">Runs</h2>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-8">
+      {% for descriptor in game.descriptors.all %}
+        <a href="{% url 'descriptor_detail' game.pk descriptor.pk %}"
+          class="flex items-center gap-2 bg-gray-900 border border-gray-800 hover:border-brand-500 rounded-xl px-4 py-2.5 transition group">
+          <span class="text-white font-medium text-sm group-hover:text-brand-400 transition">{{ descriptor.name }}</span>
+          <span class="text-xs text-gray-600">{{ descriptor.sessions.count }} session{{ descriptor.sessions.count|pluralize }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <!-- Recent sessions -->
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-semibold text-white">Recent Sessions</h2>
