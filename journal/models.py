@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from games.models import Game
 from play_sessions.models import Session
 
@@ -43,13 +42,6 @@ class JournalEntry(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-
-    def clean(self):
-        """Ensure entry is linked to at least a game or a session."""
-        if not self.session and not self.game:
-            raise ValidationError(
-                "A journal entry must be linked to either a session or a game."
-            )
 
     def get_game(self):
         """Return the game whether entry is session-based or standalone."""

@@ -48,7 +48,7 @@
   <!-- Recent sessions -->
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-semibold text-white">Recent Sessions</h2>
-    <a href="#" class="text-brand-400 text-sm hover:underline">+ Start Session</a>
+    <a href="{% url 'session_start' game.pk %}" class="text-brand-400 text-sm hover:underline">+ Start Session</a>
   </div>
 
   {% if sessions %}

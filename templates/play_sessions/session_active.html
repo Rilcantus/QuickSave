@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Session Active — {{ session.game.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-6 text-center">
+
+  <!-- Active indicator -->
+  <div class="inline-flex items-center gap-2 bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 text-brand-400 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
+    <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
+    Session Active
+  </div>
+
+  <h1 class="text-3xl font-bold text-white mb-2">{{ session.game.title }}</h1>
+
+  {% if session.descriptor %}
+    <p class="text-gray-400 mb-2">{{ session.descriptor.name }}</p>
+  {% endif %}
+
+  <p class="text-gray-500 text-sm mb-10">
+    Started {{ session.started_at|date:"g:i A" }}
+  </p>
+
+  <!-- Timer display -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 mb-8">
+    <p class="text-6xl font-bold text-white tracking-tight" id="timer">0:00</p>
+    <p class="text-gray-600 mt-2 text-sm">elapsed</p>
+  </div>
+
+  <!-- End session form -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-left">
+    <form method="POST">
+      {% csrf_token %}
+      <label class="block text-sm font-medium text-gray-300 mb-2">
+        Quick note <span class="text-gray-600 font-normal">(optional)</span>
+      </label>
+      <textarea
+        name="notes"
+        rows="3"
+        placeholder="Any quick notes before you close out?"
+        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition mb-4"
+      ></textarea>
+
+      <button type="submit"
+        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition text-lg">
+        ⏹ End Session
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- Live timer script -->
+<script>
+  (function() {
+    const startedAt = new Date({{ session.started_at|date:'U' }} * 1000);
+    const timerEl = document.getElementById('timer');
+
+    function updateTimer() {
+      const now = new Date();
+      const diff = Math.floor((now - startedAt) / 1000);
+      const hours = Math.floor(diff / 3600);
+      const minutes = Math.floor((diff % 3600) / 60);
+      const seconds = diff % 60;
+
+      if (hours > 0) {
+        timerEl.textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      } else {
+        timerEl.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+      }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  })();
+</script>
+{% endblock %}

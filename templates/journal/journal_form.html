@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-6">
+
+  <!-- Breadcrumb -->
+  <p class="text-gray-500 text-sm mb-2">
+    <a href="{% url 'game_list' %}" class="hover:text-brand-400 transition">My Games</a>
+    <span class="mx-2">›</span>
+    <a href="{% url 'game_detail' game.pk %}" class="hover:text-brand-400 transition">{{ game.title }}</a>
+    <span class="mx-2">›</span>
+    {{ action }}
+  </p>
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">{{ action }}</h1>
+    {% if session %}
+      <p class="text-gray-400 mt-1">
+        {{ session.started_at|date:"F j, Y" }}
+        {% if session.duration_display %}
+          · {{ session.duration_display }}
+        {% endif %}
+        {% if session.descriptor %}
+          · <span class="text-brand-400">{{ session.descriptor.name }}</span>
+        {% endif %}
+      </p>
+    {% endif %}
+  </div>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+    {% if form.errors %}
+      <div class="bg-red-900 border border-red-700 rounded-lg px-4 py-3 mb-4">
+        {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+            <p class="text-red-300 text-sm">{{ field }}: {{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Main body -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <label class="block text-sm font-medium text-gray-300 mb-2">
+        Session Notes
+      </label>
+      <textarea
+        name="body"
+        rows="6"
+        placeholder="What happened this session? Any thoughts, stories, or observations..."
+        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"
+      >{{ form.body.value|default:'' }}</textarea>
+      {% if form.body.errors %}
+        <p class="text-red-400 text-xs mt-1">{{ form.body.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Optional sections -->
+    <div class="grid grid-cols-1 gap-4">
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <label class="block text-sm font-medium text-gray-300 mb-2">
+          ✅ Accomplishments <span class="text-gray-600 font-normal">(optional)</span>
+        </label>
+        <textarea
+          name="accomplishments"
+          rows="3"
+          placeholder="What did you accomplish?"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"
+        >{{ form.accomplishments.value|default:'' }}</textarea>
+      </div>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <label class="block text-sm font-medium text-gray-300 mb-2">
+          🚧 Blockers <span class="text-gray-600 font-normal">(optional)</span>
+        </label>
+        <textarea
+          name="blockers"
+          rows="3"
+          placeholder="Anything frustrating or blocking you?"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"
+        >{{ form.blockers.value|default:'' }}</textarea>
+      </div>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <label class="block text-sm font-medium text-gray-300 mb-2">
+          🎯 Next Goals <span class="text-gray-600 font-normal">(optional)</span>
+        </label>
+        <textarea
+          name="next_goals"
+          rows="3"
+          placeholder="What do you want to do next session?"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition resize-none"
+        >{{ form.next_goals.value|default:'' }}</textarea>
+      </div>
+
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <label class="block text-sm font-medium text-gray-300 mb-2">
+          😌 Mood <span class="text-gray-600 font-normal">(optional)</span>
+        </label>
+        <input
+          type="text"
+          name="mood"
+          value="{{ form.mood.value|default:'' }}"
+          placeholder="e.g. flow state, frustrated, relaxed..."
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+        />
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 pb-8">
+      <button type="submit"
+        class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-lg transition">
+        💾 Save Entry
+      </button>
+      <a href="{% url 'game_detail' game.pk %}"
+         class="flex-1 text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 rounded-lg transition">
+        Skip
+      </a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
