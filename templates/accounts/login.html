@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Log In — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-white">Welcome back</h1>
+    <p class="text-gray-400 mt-2">Log in to your QuickSave account.</p>
+  </div>
+
+  <div class="bg-gray-900 rounded-2xl border border-gray-800 p-8">
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      {% for field in form %}
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-1">
+            {{ field.label }}
+          </label>
+          <input
+            type="{{ field.field.widget.input_type }}"
+            name="{{ field.html_name }}"
+            id="{{ field.id_for_label }}"
+            value="{{ field.value|default:'' }}"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+          />
+          {% if field.errors %}
+            {% for error in field.errors %}
+              <p class="text-red-400 text-xs mt-1">{{ error }}</p>
+            {% endfor %}
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit"
+        class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-lg transition mt-2">
+        Log In
+      </button>
+    </form>
+  </div>
+
+  <p class="text-center text-gray-500 text-sm mt-6">
+    Don't have an account?
+    <a href="{% url 'register' %}" class="text-brand-400 hover:underline">Sign up free</a>
+  </p>
+
+</div>
+{% endblock %}
