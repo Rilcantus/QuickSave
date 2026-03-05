@@ -10,22 +10,48 @@ from .forms import SessionStartForm, SessionEndForm
 def session_start(request, game_pk):
     game = get_object_or_404(Game, pk=game_pk, user=request.user)
 
-    # Check if there's already an active session for this game
     active = Session.objects.filter(game=game, ended_at__isnull=True).first()
     if active:
         messages.warning(request, f"You already have an active session for {game.title}!")
         return redirect('session_active', pk=active.pk)
 
+    # Get custom field definitions and last values for auto-fill
+    field_definitions = game.custom_field_definitions.all()
+    last_session = game.sessions.filter(ended_at__isnull=False).first()
+    last_values = {}
+    if last_session:
+        for val in last_session.custom_field_values.all():
+            last_values[val.field_definition_id] = val.value
+
     form = SessionStartForm(game=game, data=request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
             session = form.save()
+            # Save custom field values
+            for field_def in field_definitions:
+                value = request.POST.get(f'custom_field_{field_def.pk}', '').strip()
+                if value:
+                    from play_sessions.models import CustomFieldValue
+                    from games.models import CustomFieldChoice
+                    CustomFieldValue.objects.create(
+                        session=session,
+                        field_definition=field_def,
+                        value=value
+                    )
+                    # Auto-save new choices for choice-type fields
+                    if field_def.field_type == 'choice':
+                        CustomFieldChoice.objects.get_or_create(
+                            field_definition=field_def,
+                            value=value
+                        )
             messages.success(request, f"Session started for {game.title}!")
             return redirect('session_active', pk=session.pk)
 
     return render(request, 'play_sessions/session_start.html', {
         'game': game,
         'form': form,
+        'field_definitions': field_definitions,
+        'last_values': last_values,
     })
 
 

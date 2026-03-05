@@ -46,6 +46,47 @@
         />
       </div>
 
+      <!-- Custom fields -->
+      {% if field_definitions %}
+        <div class="border-t border-gray-800 pt-6">
+          <p class="text-sm font-medium text-gray-300 mb-4">Session Details</p>
+          <div class="space-y-4">
+            {% for field in field_definitions %}
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">
+                  {{ field.name }}
+                  <span class="text-gray-600 font-normal">(optional)</span>
+                </label>
+
+                {% if field.field_type == 'choice' %}
+                  <input
+                    type="text"
+                    name="custom_field_{{ field.pk }}"
+                    value="{{ last_values|default:''|dictsort:field.pk }}"
+                    placeholder="Type or pick from past values..."
+                    list="choices_{{ field.pk }}"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                  />
+                  <datalist id="choices_{{ field.pk }}">
+                    {% for choice in field.choices.all %}
+                      <option value="{{ choice.value }}">
+                   {% endfor %}
+                </datalist>
+              {% else %}
+                 <input
+                   type="text"
+                   name="custom_field_{{ field.pk }}"
+                   value="{% if field.pk in last_values %}{{ last_values|dictsort:field.pk }}{% endif %}"
+                   placeholder="Enter {{ field.name|lower }}..."
+                   class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                 />
+               {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
       <div class="flex gap-3 pt-2">
         <button type="submit"
           class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-lg transition text-lg">

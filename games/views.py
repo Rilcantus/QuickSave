@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Game
-from .forms import GameForm
+from .models import Game, CustomFieldDefinition
+from .forms import GameForm, CustomFieldDefinitionForm
 
 
 @login_required
@@ -61,3 +61,36 @@ def game_delete(request, pk):
         return redirect('game_list')
 
     return render(request, 'games/game_confirm_delete.html', {'game': game})
+
+@login_required
+def custom_field_create(request, game_pk):
+    game = get_object_or_404(Game, pk=game_pk, user=request.user)
+    form = CustomFieldDefinitionForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            field = form.save(commit=False)
+            field.game = game
+            field.order = game.custom_field_definitions.count()
+            field.save()
+            messages.success(request, f"Field '{field.name}' added!")
+            return redirect('game_detail', pk=game.pk)
+
+    return render(request, 'games/custom_field_form.html', {
+        'form': form,
+        'game': game,
+    })
+
+
+@login_required
+def custom_field_delete(request, pk):
+    field = get_object_or_404(CustomFieldDefinition, pk=pk, game__user=request.user)
+    game = field.game
+    if request.method == 'POST':
+        field.delete()
+        messages.success(request, f"Field deleted.")
+        return redirect('game_detail', pk=game.pk)
+
+    return render(request, 'games/custom_field_confirm_delete.html', {
+        'field': field,
+        'game': game,
+    })

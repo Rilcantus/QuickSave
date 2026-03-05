@@ -45,6 +45,34 @@
     </div>
   </div>
 
+  <!-- Custom Fields -->
+  <div class="flex items-center justify-between mb-4 mt-2">
+    <h2 class="text-lg font-semibold text-white">Custom Fields</h2>
+    <a href="{% url 'custom_field_create' game.pk %}" class="text-brand-400 text-sm hover:underline">+ Add Field</a>
+  </div>
+
+  {% if game.custom_field_definitions.all %}
+    <div class="flex flex-wrap gap-2 mb-8">
+      {% for field in game.custom_field_definitions.all %}
+        <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+          <span class="text-gray-300 text-sm font-medium">{{ field.name }}</span>
+          <span class="text-xs text-gray-600">{{ field.get_field_type_display }}</span>
+          <form method="POST" action="{% url 'custom_field_delete' field.pk %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-gray-600 hover:text-red-400 text-xs ml-1 transition">✕</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="mb-8 text-center py-6 bg-gray-900 border border-gray-800 rounded-xl">
+      <p class="text-gray-500 text-sm">No custom fields yet.</p>
+      <a href="{% url 'custom_field_create' game.pk %}" class="text-brand-400 text-sm hover:underline mt-1 inline-block">
+        Add one to track things like Difficulty, Build, or Character Name
+      </a>
+    </div>
+  {% endif %}
+
   <!-- Recent sessions -->
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-semibold text-white">Recent Sessions</h2>

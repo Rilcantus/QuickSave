@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Add Field — {{ game.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-6">
+
+  <p class="text-gray-500 text-sm mb-2">
+    <a href="{% url 'game_list' %}" class="hover:text-brand-400 transition">My Games</a>
+    <span class="mx-2">›</span>
+    <a href="{% url 'game_detail' game.pk %}" class="hover:text-brand-400 transition">{{ game.title }}</a>
+    <span class="mx-2">›</span>
+    Add Field
+  </p>
+
+  <h1 class="text-2xl font-bold text-white mt-2 mb-8">Add Custom Field</h1>
+
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+    <form method="POST" class="space-y-6">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Field Name</label>
+        <input
+          type="text"
+          name="name"
+          value="{{ form.name.value|default:'' }}"
+          placeholder="e.g. Character Name, Difficulty, Build..."
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+        />
+        {% if form.name.errors %}
+          <p class="text-red-400 text-xs mt-1">{{ form.name.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Field Type</label>
+        <select name="field_type"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+          <option value="text">Text — free type every session</option>
+          <option value="choice">Choice — pick from a reusable dropdown</option>
+        </select>
+        <p class="text-gray-500 text-xs mt-1">
+          Use <strong class="text-gray-400">Choice</strong> for things like Difficulty or Class that repeat across sessions.
+          Use <strong class="text-gray-400">Text</strong> for things like Character Name that change freely.
+        </p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit"
+          class="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-lg transition">
+          Add Field
+        </button>
+        <a href="{% url 'game_detail' game.pk %}"
+           class="flex-1 text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-2.5 rounded-lg transition">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
