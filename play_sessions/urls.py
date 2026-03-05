@@ -1,9 +1,11 @@
 from django.urls import path
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from . import views
 
 
 def home(request):
+    if request.user.is_authenticated:
+        return redirect('game_list')
     return render(request, 'home.html')
 
 
