@@ -32,10 +32,26 @@ def game_detail(request, pk):
     game = get_object_or_404(Game, pk=pk, user=request.user)
     sessions = game.sessions.all()[:10]
     journal_entries = game.journal_entries.all()[:5]
+
+    from django.db.models import Sum
+    total_seconds = game.sessions.filter(
+        ended_at__isnull=False
+    ).aggregate(total=Sum('duration_seconds'))['total'] or 0
+
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes = remainder // 60
+    if hours > 0:
+        total_playtime = f"{hours}h {minutes}m"
+    elif minutes > 0:
+        total_playtime = f"{minutes}m"
+    else:
+        total_playtime = "0m"
+
     return render(request, 'games/game_detail.html', {
         'game': game,
         'sessions': sessions,
         'journal_entries': journal_entries,
+        'total_playtime': total_playtime,
     })
 
 @login_required

@@ -51,6 +51,15 @@
         💾 QuickSave
       </a>
 
+      <!-- Active session indicator -->
+      {% if active_session %}
+        <a href="{% url 'session_active' active_session.pk %}"
+           class="flex items-center gap-2 text-brand-400 text-xs font-medium bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 px-3 py-1.5 rounded-full hover:bg-opacity-20 transition">
+          <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
+          <span>{{ active_session.game.title }}</span>
+        </a>
+      {% endif %}
+
       <!-- Desktop nav -->
       <div class="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-400">
         {% if user.is_authenticated %}

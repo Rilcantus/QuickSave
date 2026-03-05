@@ -56,6 +56,7 @@
   (function() {
     const startedAt = new Date({{ session.started_at|date:'U' }} * 1000);
     const timerEl = document.getElementById('timer');
+    let sessionEnding = false;
 
     function updateTimer() {
       const now = new Date();
@@ -73,6 +74,27 @@
 
     updateTimer();
     setInterval(updateTimer, 1000);
+
+    // Mark as intentionally ending when form submitted
+    document.querySelector('form').addEventListener('submit', function() {
+      sessionEnding = true;
+    });
+
+    // Intercept all nav link clicks
+    document.addEventListener('click', function(e) {
+      if (sessionEnding) return;
+      const link = e.target.closest('a');
+      if (link && link.href && !link.href.startsWith('#')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const confirmed = confirm('⚠️ You have an active session running! Are you sure you want to leave?');
+        if (confirmed) {
+          sessionEnding = true;
+          window.location.href = link.href;
+        }
+      }
+    });
+
   })();
 </script>
 {% endblock %}

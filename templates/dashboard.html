@@ -10,9 +10,55 @@
       <h1 class="text-2xl font-bold text-white">
         Hey, {{ request.user.username }} 👋
       </h1>
-      <p class="text-gray-500 text-sm mt-1">Here's what's going on.</p>
+      <p class="text-gray-500 text-sm mt-1">
+        {% if not games %}
+          Welcome to QuickSave! Add your first game to get started.
+        {% else %}
+          Here's what's going on.
+        {% endif %}
+      </p>
     </div>
+    {% if not games %}
+      <a href="{% url 'game_create' %}"
+         class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-4 py-2 rounded-lg transition text-sm">
+        + Add Game
+      </a>
+    {% endif %}
   </div>
+
+  <!-- Onboarding card for new users -->
+  {% if not games %}
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center mb-8">
+      <p class="text-5xl mb-4">🎮</p>
+      <h2 class="text-xl font-bold text-white mb-2">Welcome to QuickSave!</h2>
+      <p class="text-gray-400 mb-6 max-w-md mx-auto">
+        Track your gaming sessions, log journal entries, and keep notes across all your runs — all in one place.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="{% url 'game_create' %}"
+           class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-3 rounded-xl transition">
+          + Add Your First Game
+        </a>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mt-8 text-center">
+        <div class="bg-gray-800 rounded-xl p-4">
+          <p class="text-2xl mb-2">▶️</p>
+          <p class="text-white text-sm font-medium">Start a Session</p>
+          <p class="text-gray-500 text-xs mt-1">Track time when you play</p>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-4">
+          <p class="text-2xl mb-2">📓</p>
+          <p class="text-white text-sm font-medium">Write Journal Entries</p>
+          <p class="text-gray-500 text-xs mt-1">Capture thoughts after each session</p>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-4">
+          <p class="text-2xl mb-2">🏷️</p>
+          <p class="text-white text-sm font-medium">Organize by Run</p>
+          <p class="text-gray-500 text-xs mt-1">Label runs like "Modded" or "Speedrun"</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
   <!-- Active sessions banner -->
   {% if active_sessions %}
