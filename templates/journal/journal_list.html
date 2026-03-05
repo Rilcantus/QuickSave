@@ -9,25 +9,21 @@
     <span class="text-gray-500 text-sm">{{ entries.count }} entr{{ entries.count|pluralize:"y,ies" }}</span>
   </div>
 
-  {% if entries %}
+  {% if grouped_entries %}
 
-    <!-- Group by game -->
-    {% regroup entries by get_game as entries_by_game %}
-
-    {% for group in entries_by_game %}
+    {% for game, game_entries in grouped_entries %}
       <div class="mb-10">
 
-        <!-- Game header -->
         <div class="flex items-center justify-between mb-3">
-          <a href="{% url 'game_detail' group.grouper.pk %}"
+          <a href="{% url 'game_detail' game.pk %}"
              class="text-lg font-semibold text-white hover:text-brand-400 transition">
-            🎮 {{ group.grouper.title }}
+            🎮 {{ game.title }}
           </a>
-          <span class="text-gray-600 text-xs">{{ group.list|length }} entr{{ group.list|length|pluralize:"y,ies" }}</span>
+          <span class="text-gray-600 text-xs">{{ game_entries|length }} entr{{ game_entries|length|pluralize:"y,ies" }}</span>
         </div>
 
         <div class="space-y-3">
-          {% for entry in group.list %}
+          {% for entry in game_entries %}
             <a href="{% url 'journal_detail' entry.pk %}"
                class="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-brand-500 transition group">
               <div class="flex items-start justify-between">

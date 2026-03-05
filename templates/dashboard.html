@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — QuickSave{% endblock %}
+
+{% block content %}
+
+  <!-- Welcome header -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white">
+        Hey, {{ request.user.username }} 👋
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Here's what's going on.</p>
+    </div>
+  </div>
+
+  <!-- Active sessions banner -->
+  {% if active_sessions %}
+    <div class="mb-8">
+      {% for session in active_sessions %}
+        <a href="{% url 'session_active' session.pk %}"
+           class="flex items-center justify-between bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-40 rounded-2xl px-6 py-4 hover:bg-opacity-20 transition">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 bg-brand-400 rounded-full animate-pulse"></span>
+            <div>
+              <p class="text-white font-semibold">{{ session.game.title }}</p>
+              <p class="text-brand-400 text-sm">
+                Session active since {{ session.started_at|date:"g:i A" }}
+                {% if session.descriptor %} · {{ session.descriptor.name }}{% endif %}
+              </p>
+            </div>
+          </div>
+          <span class="text-brand-400 text-sm font-medium">Resume →</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Left col: Recent activity -->
+    <div class="lg:col-span-2 space-y-8">
+
+      <!-- Recent sessions -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white">Recent Sessions</h2>
+        </div>
+
+        {% if recent_sessions %}
+          <div class="space-y-3">
+            {% for session in recent_sessions %}
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <a href="{% url 'game_detail' session.game.pk %}"
+                     class="text-white font-medium hover:text-brand-400 transition">
+                    {{ session.game.title }}
+                  </a>
+                  {% if session.descriptor %}
+                    <span class="ml-2 text-xs bg-gray-800 text-brand-400 px-2 py-0.5 rounded-full">
+                      {{ session.descriptor.name }}
+                    </span>
+                  {% endif %}
+                  <p class="text-gray-500 text-sm mt-0.5">
+                    {{ session.ended_at|date:"F j · g:i A" }}
+                    {% if session.duration_display %}
+                      · <span class="text-brand-400">{{ session.duration_display }}</span>
+                    {% endif %}
+                  </p>
+                  {% if session.custom_field_values.all %}
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                      {% for val in session.custom_field_values.all %}
+                        <span class="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
+                          {{ val.field_definition.name }}: <span class="text-gray-300">{{ val.value }}</span>
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+                {% if session.journal_entry %}
+                  <a href="{% url 'journal_detail' session.journal_entry.pk %}"
+                     class="text-xs text-gray-500 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded-full transition shrink-0 ml-4">
+                    📓 Journaled
+                  </a>
+                {% else %}
+                  <a href="{% url 'journal_create_for_session' session.pk %}"
+                     class="text-xs text-gray-600 hover:text-brand-400 shrink-0 ml-4 transition">
+                    + Journal
+                  </a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-10 bg-gray-900 border border-gray-800 rounded-xl">
+            <p class="text-gray-500">No sessions yet.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent journal entries -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white">Recent Journal Entries</h2>
+          <a href="{% url 'journal_list' %}" class="text-brand-400 text-sm hover:underline">View all</a>
+        </div>
+
+        {% if recent_entries %}
+          <div class="space-y-3">
+            {% for entry in recent_entries %}
+              {% with game=entry.get_game %}
+              <a href="{% url 'journal_detail' entry.pk %}"
+                 class="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-brand-500 transition group">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p class="text-white font-medium group-hover:text-brand-400 transition">
+                      {{ game.title }}
+                      {% if entry.session.descriptor %}
+                        <span class="ml-2 text-xs bg-gray-800 text-brand-400 px-2 py-0.5 rounded-full">
+                          {{ entry.session.descriptor.name }}
+                        </span>
+                      {% endif %}
+                    </p>
+                    <p class="text-gray-500 text-xs mt-0.5">{{ entry.created_at|date:"F j, Y · g:i A" }}</p>
+                    {% if entry.body %}
+                      <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ entry.body }}</p>
+                    {% endif %}
+                  </div>
+                  {% if entry.mood %}
+                    <span class="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded-full ml-4 shrink-0">
+                      😌 {{ entry.mood }}
+                    </span>
+                  {% endif %}
+                </div>
+              </a>
+              {% endwith %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-10 bg-gray-900 border border-gray-800 rounded-xl">
+            <p class="text-gray-500">No journal entries yet.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Right col: Games library -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white">My Games</h2>
+        <a href="{% url 'game_create' %}" class="text-brand-400 text-sm hover:underline">+ Add</a>
+      </div>
+
+      {% if games %}
+        <div class="space-y-2">
+          {% for game in games %}
+            <a href="{% url 'game_detail' game.pk %}"
+               class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-brand-500 transition group">
+              <div>
+                <p class="text-white font-medium text-sm group-hover:text-brand-400 transition">
+                  {{ game.title }}
+                </p>
+                {% if game.platform %}
+                  <p class="text-gray-600 text-xs mt-0.5">{{ game.platform }}</p>
+                {% endif %}
+              </div>
+              <div class="text-right">
+                <p class="text-gray-600 text-xs">{{ game.sessions.count }} sessions</p>
+                <a href="{% url 'session_start' game.pk %}"
+                   class="text-xs text-brand-400 hover:underline mt-0.5 inline-block"
+                   onclick="event.stopPropagation()">
+                  ▶ Start
+                </a>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-10 bg-gray-900 border border-gray-800 rounded-xl">
+          <p class="text-gray-500 text-sm">No games yet.</p>
+          <a href="{% url 'game_create' %}"
+             class="inline-block mt-3 text-brand-400 text-sm hover:underline">
+            + Add your first game
+          </a>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+{% endblock %}

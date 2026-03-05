@@ -63,10 +63,27 @@ def journal_detail(request, pk):
 
 @login_required
 def journal_list(request):
-    entries = JournalEntry.objects.filter(user=request.user)
-    return render(request, 'journal/journal_list.html', {'entries': entries})
+    entries = JournalEntry.objects.filter(
+        user=request.user
+    ).select_related(
+        'game', 'session__game', 'session__descriptor'
+    ).order_by('-created_at')
 
+    # Group by game in Python instead of using regroup template tag
+    from collections import defaultdict
+    groups = defaultdict(list)
+    for entry in entries:
+        game = entry.get_game
+        if game:
+            groups[game].append(entry)
 
+    # Convert to list of tuples for template
+    grouped_entries = [(game, entries) for game, entries in groups.items()]
+
+    return render(request, 'journal/journal_list.html', {
+        'entries': entries,
+        'grouped_entries': grouped_entries,
+    })
 @login_required
 def journal_edit(request, pk):
     entry = get_object_or_404(JournalEntry, pk=pk, user=request.user)

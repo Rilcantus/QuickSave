@@ -43,11 +43,14 @@ class JournalEntry(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    @property
     def get_game(self):
         """Return the game whether entry is session-based or standalone."""
-        if self.session:
+        if self.session_id and self.session and self.session.game:
             return self.session.game
-        return self.game
+        if self.game_id and self.game:
+            return self.game
+        return None
 
     def __str__(self):
         game = self.get_game()
