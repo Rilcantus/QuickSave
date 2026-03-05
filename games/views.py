@@ -31,11 +31,12 @@ def game_create(request):
 def game_detail(request, pk):
     game = get_object_or_404(Game, pk=pk, user=request.user)
     sessions = game.sessions.all()[:10]
+    journal_entries = game.journal_entries.all()[:5]
     return render(request, 'games/game_detail.html', {
         'game': game,
         'sessions': sessions,
+        'journal_entries': journal_entries,
     })
-
 
 @login_required
 def game_edit(request, pk):

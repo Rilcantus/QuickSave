@@ -87,4 +87,38 @@
     </div>
   {% endif %}
 
+  <!-- Journal entries -->
+  <div class="flex items-center justify-between mb-4 mt-10">
+    <h2 class="text-lg font-semibold text-white">Recent Journal Entries</h2>
+    <a href="{% url 'journal_create_standalone' game.pk %}" class="text-brand-400 text-sm hover:underline">+ Write Entry</a>
+  </div>
+
+  {% if journal_entries %}
+    <div class="space-y-3">
+      {% for entry in journal_entries %}
+        <a href="{% url 'journal_detail' entry.pk %}"
+          class="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-brand-500 transition group">
+          <p class="text-white font-medium group-hover:text-brand-400 transition">
+            {{ entry.created_at|date:"F j, Y" }}
+            {% if entry.session.descriptor %}
+              <span class="ml-2 text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
+                {{ entry.session.descriptor.name }}
+              </span>
+            {% endif %}
+          </p>
+          {% if entry.body %}
+            <p class="text-gray-500 text-sm mt-1 line-clamp-2">{{ entry.body }}</p>
+          {% endif %}
+          {% if entry.mood %}
+            <p class="text-gray-600 text-xs mt-2">😌 {{ entry.mood }}</p>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-8 text-gray-600 bg-gray-900 rounded-xl border border-gray-800">
+      <p class="text-gray-400">No journal entries yet.</p>
+    </div>
+  {% endif %}
+
 {% endblock %}
