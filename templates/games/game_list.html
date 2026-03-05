@@ -16,21 +16,28 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {% for game in games %}
         <a href="{% url 'game_detail' game.pk %}"
-           class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-brand-500 transition group">
-          <div class="flex items-start justify-between">
-            <div>
-              <h2 class="text-white font-semibold text-lg group-hover:text-brand-400 transition">
-                {{ game.title }}
-              </h2>
-              {% if game.platform %}
-                <p class="text-gray-500 text-sm mt-1">{{ game.platform }}</p>
-              {% endif %}
+           class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-brand-500 transition group">
+          {% if game.cover_image_url %}
+            <div class="h-36 overflow-hidden">
+              <img src="{{ game.cover_image_url }}" alt="{{ game.title }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
             </div>
-            <span class="text-2xl">🎮</span>
+          {% else %}
+            <div class="h-36 bg-gray-800 flex items-center justify-center">
+              <span class="text-4xl">🎮</span>
+            </div>
+          {% endif %}
+          <div class="p-4">
+            <h2 class="text-white font-semibold group-hover:text-brand-400 transition">
+              {{ game.title }}
+            </h2>
+            {% if game.platform %}
+              <p class="text-gray-500 text-sm mt-0.5">{{ game.platform }}</p>
+            {% endif %}
+            <p class="text-gray-600 text-xs mt-2">
+              {{ game.sessions.count }} session{{ game.sessions.count|pluralize }}
+            </p>
           </div>
-          <p class="text-gray-600 text-xs mt-4">
-            {{ game.sessions.count }} session{{ game.sessions.count|pluralize }}
-          </p>
         </a>
       {% endfor %}
     </div>

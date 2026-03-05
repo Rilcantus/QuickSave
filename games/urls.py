@@ -12,4 +12,5 @@ urlpatterns = [
     path('<int:game_pk>/runs/<int:pk>/', views.descriptor_detail, name='descriptor_detail'),
     path('<int:game_pk>/runs/<int:pk>/edit/', views.descriptor_edit, name='descriptor_edit'),
     path('<int:game_pk>/runs/<int:pk>/delete/', views.descriptor_delete, name='descriptor_delete'),
+    path('rawg-search/', views.rawg_search, name='rawg_search'),
 ]

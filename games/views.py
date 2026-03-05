@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
+from .rawg import search_games
 from .models import Game, CustomFieldDefinition, Descriptor
 from .forms import GameForm, CustomFieldDefinitionForm
 
@@ -157,3 +159,9 @@ def descriptor_delete(request, game_pk, pk):
         'game': game,
         'descriptor': descriptor,
     })
+
+@login_required
+def rawg_search(request):
+    query = request.GET.get('q', '').strip()
+    results = search_games(query)
+    return JsonResponse({'results': results})

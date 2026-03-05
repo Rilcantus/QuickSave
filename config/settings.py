@@ -132,3 +132,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+RAWG_API_KEY = env('RAWG_API_KEY', default='')

@@ -10,29 +10,80 @@
   </div>
 
   <div class="bg-gray-900 rounded-2xl border border-gray-800 p-8">
-    <form method="POST" class="space-y-5">
+    <form method="POST" class="space-y-5" id="game-form">
       {% csrf_token %}
 
-      {% for field in form %}
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1">
-            {{ field.label }}
-          </label>
+      <!-- Title field with search trigger -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Title</label>
+        <div class="flex gap-2">
           <input
-            type="{{ field.field.widget.input_type }}"
-            name="{{ field.html_name }}"
-            id="{{ field.id_for_label }}"
-            value="{{ field.value|default:'' }}"
-            placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
-            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
+            type="text"
+            name="title"
+            id="id_title"
+            value="{{ form.title.value|default:'' }}"
+            placeholder="e.g. Elden Ring"
+            autocomplete="off"
+            class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
           />
-          {% if field.errors %}
-            {% for error in field.errors %}
-              <p class="text-red-400 text-xs mt-1">{{ error }}</p>
-            {% endfor %}
-          {% endif %}
+          <button type="button" id="search-btn"
+            class="bg-brand-500 hover:bg-brand-600 text-white font-medium px-4 py-2.5 rounded-lg transition text-sm shrink-0">
+            🔍 Search
+          </button>
         </div>
-      {% endfor %}
+        {% if form.title.errors %}
+          <p class="text-red-400 text-xs mt-1">{{ form.title.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- RAWG search results -->
+      <div id="search-results" class="hidden">
+        <p class="text-xs text-gray-500 mb-2">Select a game to auto-fill cover art:</p>
+        <div id="results-grid" class="grid grid-cols-3 gap-2"></div>
+        <button type="button" id="clear-results"
+          class="text-xs text-gray-600 hover:text-gray-400 mt-2 transition">
+          Clear results
+        </button>
+      </div>
+
+      <!-- Selected cover preview -->
+      <div id="cover-preview" class="hidden">
+        <p class="text-xs text-gray-500 mb-2">Selected cover:</p>
+        <img id="cover-img" src="" alt="Cover"
+          class="w-24 h-32 object-cover rounded-lg border border-gray-700" />
+        <button type="button" id="clear-cover"
+          class="block text-xs text-gray-600 hover:text-red-400 mt-1 transition">
+          Remove
+        </button>
+      </div>
+
+      <!-- Platform -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">Platform</label>
+        <input
+          type="text"
+          name="platform"
+          value="{{ form.platform.value|default:'' }}"
+          placeholder="e.g. PC, PS5, Xbox"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+        />
+      </div>
+
+      <!-- Cover URL (manual fallback) -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-1">
+          Cover Image URL
+          <span class="text-gray-600 font-normal">(auto-filled by search or paste manually)</span>
+        </label>
+        <input
+          type="url"
+          name="cover_image_url"
+          id="id_cover_image_url"
+          value="{{ form.cover_image_url.value|default:'' }}"
+          placeholder="https://..."
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+        />
+      </div>
 
       <div class="flex gap-3 pt-2">
         <button type="submit"
@@ -48,4 +99,109 @@
   </div>
 
 </div>
+
+<script>
+(function() {
+  const searchBtn = document.getElementById('search-btn');
+  const titleInput = document.getElementById('id_title');
+  const resultsDiv = document.getElementById('search-results');
+  const resultsGrid = document.getElementById('results-grid');
+  const clearResults = document.getElementById('clear-results');
+  const coverPreview = document.getElementById('cover-preview');
+  const coverImg = document.getElementById('cover-img');
+  const clearCover = document.getElementById('clear-cover');
+  const coverUrlInput = document.getElementById('id_cover_image_url');
+
+  // Show cover preview if URL already set (edit mode)
+  if (coverUrlInput.value) {
+    coverImg.src = coverUrlInput.value;
+    coverPreview.classList.remove('hidden');
+  }
+
+  // Search button click
+  searchBtn.addEventListener('click', function() {
+    const query = titleInput.value.trim();
+    if (!query) return;
+
+    searchBtn.textContent = '⏳ Searching...';
+    searchBtn.disabled = true;
+
+    fetch(`/games/rawg-search/?q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(data => {
+        resultsGrid.innerHTML = '';
+        if (data.results.length === 0) {
+          resultsGrid.innerHTML = '<p class="text-gray-500 text-xs col-span-3">No results found.</p>';
+        } else {
+          data.results.forEach(game => {
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'relative rounded-lg overflow-hidden border-2 border-transparent hover:border-brand-500 transition group';
+            card.innerHTML = game.image
+              ? `<img src="${game.image}" alt="${game.name}" class="w-full h-28 object-cover" />
+                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition"></div>
+                 <p class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-1 truncate">${game.name}</p>`
+              : `<div class="w-full h-28 bg-gray-800 flex items-center justify-center">
+                   <p class="text-gray-500 text-xs text-center px-2">${game.name}</p>
+                 </div>`;
+
+            card.addEventListener('click', function() {
+              // Set cover URL
+              if (game.image) {
+                coverUrlInput.value = game.image;
+                coverImg.src = game.image;
+                coverPreview.classList.remove('hidden');
+              }
+              // Hide results
+              resultsDiv.classList.add('hidden');
+            });
+
+            resultsGrid.appendChild(card);
+          });
+        }
+        resultsDiv.classList.remove('hidden');
+      })
+      .catch(() => {
+        resultsGrid.innerHTML = '<p class="text-red-400 text-xs col-span-3">Search failed. Try again or paste a URL manually.</p>';
+        resultsDiv.classList.remove('hidden');
+      })
+      .finally(() => {
+        searchBtn.textContent = '🔍 Search';
+        searchBtn.disabled = false;
+      });
+  });
+
+  // Allow pressing Enter in title field to trigger search
+  titleInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchBtn.click();
+    }
+  });
+
+  // Clear results
+  clearResults.addEventListener('click', function() {
+    resultsDiv.classList.add('hidden');
+    resultsGrid.innerHTML = '';
+  });
+
+  // Clear cover
+  clearCover.addEventListener('click', function() {
+    coverUrlInput.value = '';
+    coverImg.src = '';
+    coverPreview.classList.add('hidden');
+  });
+
+  // Watch manual URL input
+  coverUrlInput.addEventListener('input', function() {
+    if (this.value) {
+      coverImg.src = this.value;
+      coverPreview.classList.remove('hidden');
+    } else {
+      coverPreview.classList.add('hidden');
+    }
+  });
+})();
+</script>
+
 {% endblock %}

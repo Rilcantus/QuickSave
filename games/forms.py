@@ -7,10 +7,14 @@ class GameForm(forms.ModelForm):
         model = Game
         fields = ['title', 'platform', 'cover_image_url']
         widgets = {
-            'title': forms.TextInput(attrs={'placeholder': 'e.g. Elden Ring'}),
+            'title': forms.TextInput(attrs={
+                'placeholder': 'e.g. Elden Ring',
+                'autocomplete': 'off',
+            }),
             'platform': forms.TextInput(attrs={'placeholder': 'e.g. PC, PS5, Xbox'}),
-            'cover_image_url': forms.URLInput(attrs={'placeholder': 'https://...'}),
+            'cover_image_url': forms.URLInput(attrs={'placeholder': 'https://... (auto-filled or paste manually)'}),
         }
+
 
 class CustomFieldDefinitionForm(forms.ModelForm):
     class Meta:
