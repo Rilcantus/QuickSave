@@ -3,32 +3,34 @@
 {% block title %}Session Active — {{ session.game.title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto mt-6 text-center">
+<div class="max-w-lg mx-auto mt-4 px-2">
 
   <!-- Active indicator -->
-  <div class="inline-flex items-center gap-2 bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 text-brand-400 text-sm font-medium px-4 py-1.5 rounded-full mb-8">
-    <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
-    Session Active
+  <div class="flex justify-center mb-6">
+    <div class="inline-flex items-center gap-2 bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 text-brand-400 text-sm font-medium px-4 py-1.5 rounded-full">
+      <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
+      Session Active
+    </div>
   </div>
 
-  <h1 class="text-3xl font-bold text-white mb-2">{{ session.game.title }}</h1>
+  <h1 class="text-3xl font-bold text-white text-center mb-1">{{ session.game.title }}</h1>
 
   {% if session.descriptor %}
-    <p class="text-gray-400 mb-2">{{ session.descriptor.name }}</p>
+    <p class="text-gray-400 text-center mb-1">{{ session.descriptor.name }}</p>
   {% endif %}
 
-  <p class="text-gray-500 text-sm mb-10">
+  <p class="text-gray-500 text-sm text-center mb-8">
     Started {{ session.started_at|date:"g:i A" }}
   </p>
 
-  <!-- Timer display -->
-  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 mb-8">
-    <p class="text-6xl font-bold text-white tracking-tight" id="timer">0:00</p>
+  <!-- Timer -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 mb-6 text-center">
+    <p class="text-7xl font-bold text-white tracking-tight" id="timer">0:00</p>
     <p class="text-gray-600 mt-2 text-sm">elapsed</p>
   </div>
 
   <!-- End session form -->
-  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-left">
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
     <form method="POST">
       {% csrf_token %}
       <label class="block text-sm font-medium text-gray-300 mb-2">
@@ -38,11 +40,11 @@
         name="notes"
         rows="3"
         placeholder="Any quick notes before you close out?"
-        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition mb-4"
+        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition mb-4 resize-none text-base"
       ></textarea>
 
       <button type="submit"
-        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg transition text-lg">
+        class="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold py-4 rounded-xl transition text-lg">
         ⏹ End Session
       </button>
     </form>
@@ -50,7 +52,6 @@
 
 </div>
 
-<!-- Live timer script -->
 <script>
   (function() {
     const startedAt = new Date({{ session.started_at|date:'U' }} * 1000);

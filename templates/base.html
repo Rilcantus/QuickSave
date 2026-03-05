@@ -51,8 +51,8 @@
         💾 QuickSave
       </a>
 
-      <!-- Nav links -->
-      <div class="flex items-center gap-6 text-sm font-medium text-gray-400">
+      <!-- Desktop nav -->
+      <div class="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-400">
         {% if user.is_authenticated %}
           <a href="{% url 'dashboard' %}" class="hover:text-white transition">Dashboard</a>
           <a href="{% url 'game_list' %}" class="hover:text-white transition">Games</a>
@@ -62,12 +62,50 @@
             <button type="submit" class="hover:text-brand-400 transition">Log out</button>
           </form>
         {% else %}
-          <a href="/accounts/login/" class="hover:text-white transition">Log in</a>
-          <a href="/accounts/register/" class="bg-brand-500 text-white px-4 py-1.5 rounded-lg hover:bg-brand-600 transition">Sign up</a>
+          <a href="{% url 'login' %}" class="hover:text-white transition">Log in</a>
+          <a href="{% url 'register' %}" class="bg-brand-500 text-white px-4 py-1.5 rounded-lg hover:bg-brand-600 transition">Sign up</a>
         {% endif %}
       </div>
 
+      <!-- Mobile hamburger -->
+      {% if user.is_authenticated %}
+        <button id="mobile-menu-btn"
+          class="sm:hidden text-gray-400 hover:text-white transition p-2"
+          onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      {% else %}
+        <a href="{% url 'login' %}" class="sm:hidden text-brand-400 font-medium text-sm">Log in</a>
+      {% endif %}
+
     </div>
+
+    <!-- Mobile menu dropdown -->
+    {% if user.is_authenticated %}
+      <div id="mobile-menu" class="hidden sm:hidden bg-gray-900 border-t border-gray-800 px-4 py-3 space-y-1">
+        <a href="{% url 'dashboard' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
+          🏠 Dashboard
+        </a>
+        <a href="{% url 'game_list' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
+          🎮 Games
+        </a>
+        <a href="{% url 'journal_list' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
+          📓 Journal
+        </a>
+        <div class="pt-2 border-t border-gray-800 mt-2">
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="block w-full text-left py-2.5 text-gray-500 hover:text-red-400 transition font-medium">
+              Log out
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+
   </nav>
 
   <!-- Flash messages -->
@@ -88,6 +126,32 @@
   <main class="max-w-5xl mx-auto px-4 py-8">
     {% block content %}{% endblock %}
   </main>
+
+  <!-- Mobile bottom nav -->
+  {% if user.is_authenticated %}
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
+    <div class="flex items-center justify-around h-16">
+      <a href="{% url 'dashboard' %}" class="flex flex-col items-center gap-1 text-gray-500 hover:text-brand-400 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span class="text-xs">Home</span>
+      </a>
+      <a href="{% url 'game_list' %}" class="flex flex-col items-center gap-1 text-gray-500 hover:text-brand-400 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+        </svg>
+        <span class="text-xs">Games</span>
+      </a>
+      <a href="{% url 'journal_list' %}" class="flex flex-col items-center gap-1 text-gray-500 hover:text-brand-400 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <span class="text-xs">Journal</span>
+      </a>
+    </div>
+  </nav>
+  {% endif %}
 
 </body>
 </html>
