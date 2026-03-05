@@ -20,15 +20,23 @@ def session_start(request, game_pk):
     last_session = game.sessions.filter(ended_at__isnull=False).first()
     last_values = {}
     if last_session:
-        for val in last_session.custom_field_values.all():
+        for val in last_session.custom_field_values.select_related('field_definition'):
             last_values[val.field_definition_id] = val.value
+
+    field_data = []
+    for field in field_definitions:
+        field_data.append({
+            'definition': field,
+            'last_value': last_values.get(field.pk, ''),
+        })
 
     form = SessionStartForm(game=game, data=request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
             session = form.save()
             # Save custom field values
-            for field_def in field_definitions:
+            for item in field_data:
+                field_def = item['definition']
                 value = request.POST.get(f'custom_field_{field_def.pk}', '').strip()
                 if value:
                     from play_sessions.models import CustomFieldValue
@@ -38,7 +46,6 @@ def session_start(request, game_pk):
                         field_definition=field_def,
                         value=value
                     )
-                    # Auto-save new choices for choice-type fields
                     if field_def.field_type == 'choice':
                         CustomFieldChoice.objects.get_or_create(
                             field_definition=field_def,
@@ -50,8 +57,7 @@ def session_start(request, game_pk):
     return render(request, 'play_sessions/session_start.html', {
         'game': game,
         'form': form,
-        'field_definitions': field_definitions,
-        'last_values': last_values,
+        'field_data': field_data,
     })
 
 

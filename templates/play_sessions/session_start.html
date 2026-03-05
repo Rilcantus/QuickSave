@@ -47,40 +47,39 @@
       </div>
 
       <!-- Custom fields -->
-      {% if field_definitions %}
+      {% if field_data %}
         <div class="border-t border-gray-800 pt-6">
           <p class="text-sm font-medium text-gray-300 mb-4">Session Details</p>
           <div class="space-y-4">
-            {% for field in field_definitions %}
+            {% for item in field_data %}
               <div>
                 <label class="block text-sm font-medium text-gray-300 mb-1">
-                  {{ field.name }}
+                  {{ item.definition.name }}
                   <span class="text-gray-600 font-normal">(optional)</span>
                 </label>
-
-                {% if field.field_type == 'choice' %}
+                {% if item.definition.field_type == 'choice' %}
                   <input
                     type="text"
-                    name="custom_field_{{ field.pk }}"
-                    value="{{ last_values|default:''|dictsort:field.pk }}"
+                    name="custom_field_{{ item.definition.pk }}"
+                    value="{{ item.last_value }}"
                     placeholder="Type or pick from past values..."
-                    list="choices_{{ field.pk }}"
+                    list="choices_{{ item.definition.pk }}"
                     class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
                   />
-                  <datalist id="choices_{{ field.pk }}">
-                    {% for choice in field.choices.all %}
+                  <datalist id="choices_{{ item.definition.pk }}">
+                    {% for choice in item.definition.choices.all %}
                       <option value="{{ choice.value }}">
-                   {% endfor %}
-                </datalist>
-              {% else %}
-                 <input
-                   type="text"
-                   name="custom_field_{{ field.pk }}"
-                   value="{% if field.pk in last_values %}{{ last_values|dictsort:field.pk }}{% endif %}"
-                   placeholder="Enter {{ field.name|lower }}..."
-                   class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
-                 />
-               {% endif %}
+                    {% endfor %}
+                    </datalist>
+                {% else %}
+                  <input
+                    type="text"
+                    name="custom_field_{{ item.definition.pk }}"
+                    value="{{ item.last_value }}"
+                    placeholder="Enter {{ item.definition.name|lower }}..."
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+                  />
+                {% endif %}
               </div>
             {% endfor %}
           </div>

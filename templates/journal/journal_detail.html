@@ -48,6 +48,21 @@
     </div>
   {% endif %}
 
+  <!-- Custom field values -->
+  {% if entry.session %}
+    {% with vals=entry.session.custom_field_values.all %}
+      {% if vals %}
+        <div class="flex flex-wrap gap-2 mb-6">
+          {% for val in vals %}
+            <span class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full">
+              {{ val.field_definition.name }}: <span class="text-white">{{ val.value }}</span>
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
+
   <!-- Body -->
   {% if entry.body %}
     <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">

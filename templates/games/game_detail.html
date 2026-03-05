@@ -101,6 +101,15 @@
                 No duration recorded
               {% endif %}
             </p>
+            {% if session.custom_field_values.all %}
+              <div class="flex flex-wrap gap-2 mt-2">
+                {% for val in session.custom_field_values.all %}
+                  <span class="text-xs bg-gray-800 text-gray-500 px-2 py-0.5 rounded-full">
+                   {{ val.field_definition.name }}: <span class="text-gray-300">{{ val.value }}</span>
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
           {% if session.journal_entry %}
             <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-full">📓 Journaled</span>
