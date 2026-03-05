@@ -66,6 +66,7 @@
           <a href="{% url 'dashboard' %}" class="hover:text-white transition">Dashboard</a>
           <a href="{% url 'game_list' %}" class="hover:text-white transition">Games</a>
           <a href="{% url 'journal_list' %}" class="hover:text-white transition">Journal</a>
+          <a href="{% url 'overall_stats' %}" class="hover:text-white transition">Stats</a>
           <a href="{% url 'account_settings' %}" class="hover:text-white transition">Settings</a>
           <form method="POST" action="{% url 'logout' %}" class="inline">
             {% csrf_token %}
@@ -104,6 +105,9 @@
         </a>
         <a href="{% url 'journal_list' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
           📓 Journal
+        </a>
+        <a href="{% url 'overall_stats' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
+          📊 Stats
         </a>
         <a href="{% url 'account_settings' %}" class="block py-2.5 text-gray-300 hover:text-white transition font-medium">
           ⚙️ Settings

@@ -17,6 +17,11 @@
           Here's what's going on.
         {% endif %}
       </p>
+      {% if games %}
+        <a href="{% url 'overall_stats' %}" class="text-sm text-gray-500 hover:text-brand-400 transition mt-1 inline-block">
+          📊 View your stats
+        </a>
+      {% endif %}
     </div>
     {% if not games %}
       <a href="{% url 'game_create' %}"
