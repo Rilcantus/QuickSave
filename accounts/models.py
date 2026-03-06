@@ -3,18 +3,11 @@ from django.db import models
 
 
 class User(AbstractUser):
-  """
-  Custom user model for QuickSave.
-  Extends Django's build in AbstractUser so we keep all the
-  default auth functionality (login, password hashing, etc.)
-  while giving ourselves room to add fields later. 
-  """
+    # Steam integration
+    steam_id = models.CharField(max_length=50, blank=True)
+    steam_username = models.CharField(max_length=100, blank=True)
+    steam_avatar = models.URLField(blank=True)
+    steam_polling_enabled = models.BooleanField(default=False)
 
-  # Future fields can go here, eg:
-  # avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-  # bio = models.TextField(blank=True)
-  # timezone = models.CharField(max_length=50, default='UTC')
-
-  def __str__(self):
-    return self.username
-  
+    def __str__(self):
+        return self.username

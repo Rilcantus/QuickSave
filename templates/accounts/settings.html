@@ -55,6 +55,37 @@
     </div>
   </div>
 
+  <!-- Steam integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">Steam Integration</p>
+        <p class="text-gray-500 text-sm">
+          {% if request.user.steam_id %}
+            Connected as {{ request.user.steam_username }}
+            {% if request.user.steam_polling_enabled %}
+              · <span class="text-brand-400">Auto-tracking on</span>
+            {% else %}
+              · <span class="text-gray-600">Paused</span>
+            {% endif %}
+          {% else %}
+            Auto-track your Steam sessions
+          {% endif %}
+        </p>
+      </div>
+      {% if request.user.steam_avatar %}
+        <img src="{{ request.user.steam_avatar }}" alt="Steam"
+             class="w-10 h-10 rounded-full border border-gray-700" />
+      {% else %}
+        <span class="text-3xl">🎮</span>
+      {% endif %}
+    </div>
+    <a href="{% url 'steam_settings' %}"
+       class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      {% if request.user.steam_id %}Manage Steam{% else %}Connect Steam{% endif %}
+    </a>
+  </div>
+
   <!-- Danger zone -->
   <div class="bg-gray-900 border border-red-900 rounded-2xl p-6">
     <p class="text-red-400 font-semibold mb-1">Danger Zone</p>

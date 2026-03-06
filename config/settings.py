@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'games',
     'play_sessions',
     'journal',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -134,3 +135,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 RAWG_API_KEY = env('RAWG_API_KEY', default='')
+STEAM_API_KEY = env('STEAM_API_KEY', default='')
+
+Q_CLUSTER = {
+    'name': 'quicksave',
+    'workers': 2,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'orm': 'default',
+}

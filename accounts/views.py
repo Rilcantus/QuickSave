@@ -93,3 +93,79 @@ def delete_account(request):
         return redirect('home')
 
     return render(request, 'accounts/delete_account.html')
+
+@login_required
+def steam_connect(request):
+    if request.method == 'POST':
+        from .steam import get_player_summary, resolve_steam_id
+        steam_input = request.POST.get('steam_id', '').strip()
+
+        if not steam_input:
+            messages.error(request, "Please enter a Steam ID or username.")
+            return redirect('account_settings')
+
+        # Try as vanity URL first, then as direct Steam ID
+        steam_id = None
+        if steam_input.isdigit() and len(steam_input) == 17:
+            steam_id = steam_input
+        else:
+            steam_id = resolve_steam_id(steam_input)
+
+        if not steam_id:
+            messages.error(request, "Couldn't find that Steam account. Try your 17-digit Steam ID instead.")
+            return redirect('steam_settings')
+
+        # Verify the account exists and get profile info
+        player = get_player_summary(steam_id)
+        if not player:
+            messages.error(request, "Couldn't connect to Steam. Check your ID and try again.")
+            return redirect('steam_settings')
+
+        request.user.steam_id = steam_id
+        request.user.steam_username = player.get('personaname', '')
+        request.user.steam_avatar = player.get('avatarmedium', '')
+        request.user.steam_polling_enabled = True
+        request.user.save()
+
+        # Set up polling schedule
+        from .cron import setup_steam_polling_schedule
+        setup_steam_polling_schedule()
+
+        messages.success(request, f"Connected to Steam as {request.user.steam_username}!")
+        return redirect('steam_settings')
+
+    return redirect('steam_settings')
+
+
+@login_required
+def steam_disconnect(request):
+    if request.method == 'POST':
+        request.user.steam_id = ''
+        request.user.steam_username = ''
+        request.user.steam_avatar = ''
+        request.user.steam_polling_enabled = False
+        request.user.save()
+        messages.success(request, "Steam account disconnected.")
+    return redirect('account_settings')
+
+
+@login_required
+def steam_settings(request):
+    from .steam import get_recently_played
+    recently_played = []
+    if request.user.steam_id:
+        recently_played = get_recently_played(request.user.steam_id)[:5]
+
+    return render(request, 'accounts/steam_settings.html', {
+        'recently_played': recently_played,
+    })
+
+
+@login_required  
+def steam_toggle_polling(request):
+    if request.method == 'POST':
+        request.user.steam_polling_enabled = not request.user.steam_polling_enabled
+        request.user.save()
+        status = "enabled" if request.user.steam_polling_enabled else "paused"
+        messages.success(request, f"Steam auto-tracking {status}.")
+    return redirect('steam_settings')

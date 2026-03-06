@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Steam Integration — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-6">
+
+  <p class="text-gray-500 text-sm mb-2">
+    <a href="{% url 'account_settings' %}" class="hover:text-brand-400 transition">Settings</a>
+    <span class="mx-2">›</span>
+    Steam Integration
+  </p>
+
+  <h1 class="text-2xl font-bold text-white mt-2 mb-8">Steam Integration</h1>
+
+  {% if request.user.steam_id %}
+    <!-- Connected state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+      <div class="flex items-center gap-4 mb-4">
+        {% if request.user.steam_avatar %}
+          <img src="{{ request.user.steam_avatar }}" alt="Steam avatar"
+               class="w-14 h-14 rounded-full border border-gray-700" />
+        {% endif %}
+        <div>
+          <p class="text-white font-semibold">{{ request.user.steam_username }}</p>
+          <p class="text-gray-500 text-sm">Steam ID: {{ request.user.steam_id }}</p>
+        </div>
+        <div class="ml-auto">
+          {% if request.user.steam_polling_enabled %}
+            <span class="flex items-center gap-1.5 text-brand-400 text-xs font-medium bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 px-3 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
+              Auto-tracking on
+            </span>
+          {% else %}
+            <span class="text-gray-500 text-xs bg-gray-800 px-3 py-1 rounded-full">
+              Auto-tracking paused
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Toggle polling -->
+      <form method="POST" action="{% url 'steam_toggle_polling' %}" class="mb-3">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full {% if request.user.steam_polling_enabled %}bg-gray-800 hover:bg-gray-700 text-gray-300{% else %}bg-brand-500 hover:bg-brand-600 text-white{% endif %} font-medium py-2.5 rounded-lg transition text-sm">
+          {% if request.user.steam_polling_enabled %}
+            ⏸ Pause Auto-tracking
+          {% else %}
+            ▶ Resume Auto-tracking
+          {% endif %}
+        </button>
+      </form>
+
+      <!-- Disconnect -->
+      <form method="POST" action="{% url 'steam_disconnect' %}">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full bg-red-900 hover:bg-red-800 text-red-300 font-medium py-2.5 rounded-lg transition text-sm">
+          Disconnect Steam
+        </button>
+      </form>
+    </div>
+
+    <!-- How it works -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+      <h2 class="text-white font-semibold mb-3">How Auto-tracking Works</h2>
+      <div class="space-y-2 text-gray-400 text-sm">
+        <p>🎮 QuickSave checks your Steam status every <strong class="text-white">5 minutes</strong></p>
+        <p>▶️ When you start a game, a session is <strong class="text-white">automatically started</strong></p>
+        <p>⏹ When you quit, the session is <strong class="text-white">automatically ended</strong></p>
+        <p>📚 If the game isn't in your library, it's <strong class="text-white">auto-added with cover art</strong></p>
+        <p>📓 You'll be prompted to journal after each session</p>
+      </div>
+      <p class="text-gray-600 text-xs mt-4">
+        ⚠️ Your Steam profile must be set to <strong class="text-gray-500">Public</strong> for auto-tracking to work.
+      </p>
+    </div>
+
+    <!-- Recently played -->
+    {% if recently_played %}
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <h2 class="text-white font-semibold mb-4">Recently Played on Steam</h2>
+        <div class="space-y-3">
+          {% for game in recently_played %}
+            <div class="flex items-center justify-between">
+              <p class="text-gray-300 text-sm">{{ game.name }}</p>
+              <span class="text-gray-600 text-xs">
+                {{ game.playtime_2weeks|default:0 }}m this week
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Not connected state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-4">
+      <div class="text-center mb-6">
+        <p class="text-4xl mb-3">🎮</p>
+        <h2 class="text-white font-semibold text-lg">Connect your Steam account</h2>
+        <p class="text-gray-400 text-sm mt-2">
+          QuickSave will automatically track your sessions when you play on Steam.
+        </p>
+      </div>
+
+      <form method="POST" action="{% url 'steam_connect' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-1">
+            Steam Username or Steam ID
+          </label>
+          <input
+            type="text"
+            name="steam_id"
+            placeholder="e.g. your_username or 76561198xxxxxxxxx"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+          />
+          <p class="text-gray-600 text-xs mt-1">
+            Find your Steam ID at <span class="text-gray-400">steamid.io</span>
+          </p>
+        </div>
+        <button type="submit"
+          class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-lg transition">
+          Connect Steam
+        </button>
+      </form>
+    </div>
+
+    <!-- Requirements -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-3">Requirements</h2>
+      <div class="space-y-2 text-gray-400 text-sm">
+        <p>✅ Steam account must be <strong class="text-white">Public</strong></p>
+        <p>✅ Game details must be <strong class="text-white">Public</strong> in privacy settings</p>
+        <p>✅ Steam must be <strong class="text-white">running</strong> while you play</p>
+      </div>
+      <p class="text-gray-600 text-xs mt-4">
+        To make your profile public: Steam → Profile → Edit Profile → Privacy Settings → Set to Public
+      </p>
+    </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}
