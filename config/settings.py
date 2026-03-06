@@ -171,5 +171,5 @@ if not DEBUG:
 
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-4fa9f.up.railway.app',
-    'www.quicksave.site',
+    'https://www.quicksave.site',
 ]
