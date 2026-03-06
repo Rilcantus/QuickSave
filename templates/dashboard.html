@@ -87,6 +87,29 @@
     </div>
   {% endif %}
 
+  {% if request.user.steam_id and request.user.steam_polling_enabled %}
+    <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-5 py-3 mb-6">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
+        <p class="text-gray-400 text-sm">
+          Steam auto-tracking active
+          {% if request.user.steam_username %}
+            · <span class="text-gray-300">{{ request.user.steam_username }}</span>
+          {% endif %}
+        </p>
+      </div>
+      <form method="POST" action="{% url 'steam_poll_now' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'dashboard' %}" />
+        <button type="submit"
+          class="text-xs bg-gray-800 hover:bg-brand-500 hover:text-white text-gray-400 px-3 py-1.5 rounded-lg transition">
+          🔄 Check Now
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+  
   <!-- Main grid -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
 

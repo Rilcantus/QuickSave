@@ -177,8 +177,10 @@ def steam_poll_now(request):
             from .tasks import poll_steam_for_user
             poll_steam_for_user(request.user.pk)
             messages.success(request, "Steam status checked!")
-        return redirect('steam_settings')
-    return redirect('steam_settings')
+        # Redirect back to wherever the user came from
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
+        return redirect(next_url)
+    return redirect('dashboard')
 
 @login_required
 def discord_oauth(request):
