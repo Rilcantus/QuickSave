@@ -168,3 +168,7 @@ if not DEBUG:
         conn_max_age=600,
         ssl_require=True,
     )
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-4fa9f.up.railway.app',
+]
