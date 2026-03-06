@@ -12,6 +12,25 @@
     </a>
   </div>
 
+  <!-- Search -->
+  <form method="GET" class="mb-6">
+    <div class="flex gap-2">
+      <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search your games..."
+        class="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+      />
+      {% if query %}
+        <a href="{% url 'game_list' %}"
+           class="bg-gray-800 hover:bg-gray-700 text-gray-400 px-4 py-2.5 rounded-lg transition text-sm">
+          Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
   {% if games %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {% for game in games %}
@@ -43,14 +62,21 @@
     </div>
 
   {% else %}
-    <div class="text-center py-20 text-gray-500">
-      <p class="text-5xl mb-4">🎮</p>
-      <p class="text-lg font-medium text-gray-400">No games yet.</p>
-      <p class="text-sm mt-1 mb-6">Add your first game to get started.</p>
-      <a href="{% url 'game_create' %}"
-         class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2.5 rounded-lg transition">
-        + Add Game
-      </a>
+    <div class="text-center py-20 bg-gray-900 border border-gray-800 rounded-2xl">
+      {% if query %}
+        <p class="text-4xl mb-3">🔍</p>
+        <p class="text-lg font-medium text-gray-400">No games found for "{{ query }}"</p>
+        <a href="{% url 'game_list' %}" class="text-brand-400 text-sm hover:underline mt-2 inline-block">
+          Clear search
+        </a>
+      {% else %}
+        <p class="text-4xl mb-3">🎮</p>
+        <p class="text-lg font-medium text-gray-400">No games yet.</p>
+        <a href="{% url 'game_create' %}"
+           class="inline-block mt-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2 rounded-lg transition text-sm">
+          + Add your first game
+        </a>
+      {% endif %}
     </div>
   {% endif %}
 

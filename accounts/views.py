@@ -171,6 +171,16 @@ def steam_toggle_polling(request):
     return redirect('steam_settings')
 
 @login_required
+def steam_poll_now(request):
+    if request.method == 'POST':
+        if request.user.steam_id:
+            from .tasks import poll_steam_for_user
+            poll_steam_for_user(request.user.pk)
+            messages.success(request, "Steam status checked!")
+        return redirect('steam_settings')
+    return redirect('steam_settings')
+
+@login_required
 def discord_oauth(request):
     """Redirect to Discord OAuth."""
     from .discord_api import get_oauth_url

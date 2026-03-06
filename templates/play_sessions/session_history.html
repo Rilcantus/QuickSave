@@ -85,4 +85,26 @@
     </div>
   {% endif %}
 
+  {% if sessions.has_other_pages %}
+    <div class="flex items-center justify-center gap-2 py-8">
+      {% if sessions.has_previous %}
+        <a href="?page={{ sessions.previous_page_number }}{% if game_filter %}&game={{ game_filter }}{% endif %}"
+           class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg transition text-sm">
+          ← Previous
+        </a>
+      {% endif %}
+
+      <span class="text-gray-500 text-sm">
+        Page {{ sessions.number }} of {{ sessions.paginator.num_pages }}
+      </span>
+
+      {% if sessions.has_next %}
+        <a href="?page={{ sessions.next_page_number }}{% if game_filter %}&game={{ game_filter }}{% endif %}"
+           class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg transition text-sm">
+          Next →
+        </a>
+      {% endif %}
+      </div>
+  {% endif %}
+
 {% endblock %}

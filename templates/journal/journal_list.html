@@ -9,6 +9,32 @@
     <span class="text-gray-500 text-sm">{{ entries.count }} entr{{ entries.count|pluralize:"y,ies" }}</span>
   </div>
 
+  <!-- Search -->
+  <form method="GET" class="mb-6">
+    <div class="flex gap-2">
+      <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search journal entries..."
+        class="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition"
+      />
+      {% if query %}
+        <a href="{% url 'journal_list' %}"
+           class="bg-gray-800 hover:bg-gray-700 text-gray-400 px-4 py-2.5 rounded-lg transition text-sm">
+          Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
+{% if query %}
+  <p class="text-gray-500 text-sm mb-6">
+    Results for <span class="text-white">"{{ query }}"</span>
+    — {{ entries.count }} entr{{ entries.count|pluralize:"y,ies" }} found
+  </p>
+{% endif %}
+
   {% if grouped_entries %}
 
     {% for game, game_entries in grouped_entries %}

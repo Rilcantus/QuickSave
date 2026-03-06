@@ -52,6 +52,14 @@
         </button>
       </form>
 
+      <form method="POST" action="{% url 'steam_poll_now' %}" class="mb-3">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+          🔄 Check Steam Now
+        </button>
+      </form>
+
       <!-- Disconnect -->
       <form method="POST" action="{% url 'steam_disconnect' %}">
         {% csrf_token %}

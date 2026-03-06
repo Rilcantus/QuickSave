@@ -18,4 +18,6 @@ urlpatterns = [
     path('discord/callback/', views.discord_callback, name='discord_callback'),
     path('settings/discord/disconnect/', views.discord_disconnect, name='discord_disconnect'),
     path('settings/discord/toggle/', views.discord_toggle_polling, name='discord_toggle_polling'),
+    path('settings/steam/poll/', views.steam_poll_now, name='steam_poll_now'),
+
 ]

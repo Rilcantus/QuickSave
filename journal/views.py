@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import models
 from play_sessions.models import Session
 from games.models import Game
 from .models import JournalEntry
@@ -63,13 +64,22 @@ def journal_detail(request, pk):
 
 @login_required
 def journal_list(request):
+    query = request.GET.get('q', '').strip()
     entries = JournalEntry.objects.filter(
         user=request.user
     ).select_related(
         'game', 'session__game', 'session__descriptor'
     ).order_by('-created_at')
 
-    # Group by game in Python instead of using regroup template tag
+    if query:
+        entries = entries.filter(
+            models.Q(body__icontains=query) |
+            models.Q(accomplishments__icontains=query) |
+            models.Q(next_goals__icontains=query) |
+            models.Q(session__game__title__icontains=query) |
+            models.Q(game__title__icontains=query)
+        )
+
     from collections import defaultdict
     groups = defaultdict(list)
     for entry in entries:
@@ -77,13 +87,14 @@ def journal_list(request):
         if game:
             groups[game].append(entry)
 
-    # Convert to list of tuples for template
     grouped_entries = [(game, entries) for game, entries in groups.items()]
 
     return render(request, 'journal/journal_list.html', {
         'entries': entries,
         'grouped_entries': grouped_entries,
+        'query': query,
     })
+
 @login_required
 def journal_edit(request, pk):
     entry = get_object_or_404(JournalEntry, pk=pk, user=request.user)

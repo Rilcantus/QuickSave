@@ -10,9 +10,14 @@ from .forms import GameForm, CustomFieldDefinitionForm
 
 @login_required
 def game_list(request):
+    query = request.GET.get('q', '').strip()
     games = Game.objects.filter(user=request.user)
-    return render(request, 'games/game_list.html', {'games': games})
-
+    if query:
+        games = games.filter(title__icontains=query)
+    return render(request, 'games/game_list.html', {
+        'games': games,
+        'query': query,
+    })
 
 @login_required
 def game_create(request):

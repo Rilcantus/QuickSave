@@ -97,19 +97,25 @@ def session_end_prompt(request, pk):
 @login_required
 def session_history(request):
     from games.models import Game
+    from django.core.paginator import Paginator
+
     sessions = Session.objects.filter(
         game__user=request.user,
         ended_at__isnull=False
     ).select_related('game', 'descriptor').order_by('-started_at')
 
-    # Filter by game if requested
     game_filter = request.GET.get('game')
     games = Game.objects.filter(user=request.user)
     if game_filter:
         sessions = sessions.filter(game__pk=game_filter)
 
+    paginator = Paginator(sessions, 20)
+    page = request.GET.get('page', 1)
+    sessions_page = paginator.get_page(page)
+
     return render(request, 'play_sessions/session_history.html', {
-        'sessions': sessions,
+        'sessions': sessions_page,
         'games': games,
         'game_filter': game_filter,
+        'paginator': paginator,
     })
