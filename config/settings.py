@@ -135,7 +135,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 RAWG_API_KEY = env('RAWG_API_KEY', default='')
+
 STEAM_API_KEY = env('STEAM_API_KEY', default='')
+
+DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID', default='')
+DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET', default='')
+DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI', default='')
 
 Q_CLUSTER = {
     'name': 'quicksave',

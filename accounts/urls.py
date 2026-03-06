@@ -13,4 +13,9 @@ urlpatterns = [
     path('settings/steam/connect/', views.steam_connect, name='steam_connect'),
     path('settings/steam/disconnect/', views.steam_disconnect, name='steam_disconnect'),
     path('settings/steam/toggle/', views.steam_toggle_polling, name='steam_toggle_polling'),
+    path('settings/discord/', views.discord_settings, name='discord_settings'),
+    path('settings/discord/oauth/', views.discord_oauth, name='discord_oauth'),
+    path('discord/callback/', views.discord_callback, name='discord_callback'),
+    path('settings/discord/disconnect/', views.discord_disconnect, name='discord_disconnect'),
+    path('settings/discord/toggle/', views.discord_toggle_polling, name='discord_toggle_polling'),
 ]

@@ -169,3 +169,83 @@ def steam_toggle_polling(request):
         status = "enabled" if request.user.steam_polling_enabled else "paused"
         messages.success(request, f"Steam auto-tracking {status}.")
     return redirect('steam_settings')
+
+@login_required
+def discord_oauth(request):
+    """Redirect to Discord OAuth."""
+    from .discord_api import get_oauth_url
+    from django.http import HttpResponseRedirect
+    url = get_oauth_url()
+    return HttpResponseRedirect(url)
+
+
+def discord_callback(request):
+    """Handle Discord OAuth callback."""
+    from .discord_api import exchange_code, get_current_user
+    from .cron import setup_discord_polling_schedule
+
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+    error_description = request.GET.get('error_description', '')
+
+    if error or not code:
+        messages.error(request, f"Discord error: {error} — {error_description}")
+        return redirect('account_settings')
+
+    # Exchange code for tokens
+    tokens = exchange_code(code)
+    if not tokens or 'access_token' not in tokens:
+        messages.error(request, "Failed to connect Discord. Please try again.")
+        return redirect('account_settings')
+
+    # Get user profile
+    user_data = get_current_user(tokens['access_token'])
+    if not user_data:
+        messages.error(request, "Failed to get Discord profile.")
+        return redirect('account_settings')
+
+    # Save to user
+    request.user.discord_id = user_data.get('id', '')
+    request.user.discord_username = user_data.get('username', '')
+    avatar_hash = user_data.get('avatar', '')
+    if avatar_hash:
+        request.user.discord_avatar = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{avatar_hash}.png"
+    request.user.discord_access_token = tokens['access_token']
+    request.user.discord_refresh_token = tokens.get('refresh_token', '')
+    request.user.discord_polling_enabled = True
+    request.user.save()
+
+    # Set up polling
+    setup_discord_polling_schedule()
+
+    messages.success(request, f"Connected to Discord as {request.user.discord_username}!")
+    return redirect('discord_settings')
+
+
+@login_required
+def discord_disconnect(request):
+    if request.method == 'POST':
+        request.user.discord_id = ''
+        request.user.discord_username = ''
+        request.user.discord_avatar = ''
+        request.user.discord_access_token = ''
+        request.user.discord_refresh_token = ''
+        request.user.discord_polling_enabled = False
+        request.user.save()
+        messages.success(request, "Discord account disconnected.")
+    return redirect('account_settings')
+
+
+@login_required
+def discord_settings(request):
+    return render(request, 'accounts/discord_settings.html')
+
+
+@login_required
+def discord_toggle_polling(request):
+    if request.method == 'POST':
+        request.user.discord_polling_enabled = not request.user.discord_polling_enabled
+        request.user.save()
+        status = "enabled" if request.user.discord_polling_enabled else "paused"
+        messages.success(request, f"Discord auto-tracking {status}.")
+    return redirect('discord_settings')

@@ -86,6 +86,37 @@
     </a>
   </div>
 
+  <!-- Discord integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">Discord Integration</p>
+        <p class="text-gray-500 text-sm">
+          {% if request.user.discord_id %}
+            Connected as {{ request.user.discord_username }}
+            {% if request.user.discord_polling_enabled %}
+              · <span class="text-brand-400">Auto-tracking on</span>
+            {% else %}
+              · <span class="text-gray-600">Paused</span>
+            {% endif %}
+          {% else %}
+            Auto-track any game Discord detects
+          {% endif %}
+        </p>
+      </div>
+      {% if request.user.discord_avatar %}
+        <img src="{{ request.user.discord_avatar }}" alt="Discord"
+             class="w-10 h-10 rounded-full border border-gray-700" />
+      {% else %}
+        <span class="text-3xl">💬</span>
+      {% endif %}
+    </div>
+    <a href="{% url 'discord_settings' %}"
+       class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      {% if request.user.discord_id %}Manage Discord{% else %}Connect Discord{% endif %}
+    </a>
+  </div>
+
   <!-- Danger zone -->
   <div class="bg-gray-900 border border-red-900 rounded-2xl p-6">
     <p class="text-red-400 font-semibold mb-1">Danger Zone</p>

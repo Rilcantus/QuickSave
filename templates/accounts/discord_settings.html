@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Discord Integration — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-6">
+
+  <p class="text-gray-500 text-sm mb-2">
+    <a href="{% url 'account_settings' %}" class="hover:text-brand-400 transition">Settings</a>
+    <span class="mx-2">›</span>
+    Discord Integration
+  </p>
+
+  <h1 class="text-2xl font-bold text-white mt-2 mb-8">Discord Integration</h1>
+
+  {% if request.user.discord_id %}
+    <!-- Connected state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+      <div class="flex items-center gap-4 mb-4">
+        {% if request.user.discord_avatar %}
+          <img src="{{ request.user.discord_avatar }}" alt="Discord avatar"
+               class="w-14 h-14 rounded-full border border-gray-700" />
+        {% endif %}
+        <div>
+          <p class="text-white font-semibold">{{ request.user.discord_username }}</p>
+          <p class="text-gray-500 text-sm">Discord ID: {{ request.user.discord_id }}</p>
+        </div>
+        <div class="ml-auto">
+          {% if request.user.discord_polling_enabled %}
+            <span class="flex items-center gap-1.5 text-brand-400 text-xs font-medium bg-brand-500 bg-opacity-10 border border-brand-500 border-opacity-30 px-3 py-1 rounded-full">
+              <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
+              Auto-tracking on
+            </span>
+          {% else %}
+            <span class="text-gray-500 text-xs bg-gray-800 px-3 py-1 rounded-full">
+              Auto-tracking paused
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="POST" action="{% url 'discord_toggle_polling' %}" class="mb-3">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full {% if request.user.discord_polling_enabled %}bg-gray-800 hover:bg-gray-700 text-gray-300{% else %}bg-brand-500 hover:bg-brand-600 text-white{% endif %} font-medium py-2.5 rounded-lg transition text-sm">
+          {% if request.user.discord_polling_enabled %}
+            ⏸ Pause Auto-tracking
+          {% else %}
+            ▶ Resume Auto-tracking
+          {% endif %}
+        </button>
+      </form>
+
+      <form method="POST" action="{% url 'discord_disconnect' %}">
+        {% csrf_token %}
+        <button type="submit"
+          class="w-full bg-red-900 hover:bg-red-800 text-red-300 font-medium py-2.5 rounded-lg transition text-sm">
+          Disconnect Discord
+        </button>
+      </form>
+    </div>
+
+    <!-- How it works -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-3">How Auto-tracking Works</h2>
+      <div class="space-y-2 text-gray-400 text-sm">
+        <p>🎮 QuickSave checks your Discord activity every <strong class="text-white">5 minutes</strong></p>
+        <p>▶️ When Discord detects you're playing, a session <strong class="text-white">auto-starts</strong></p>
+        <p>⏹ When you stop playing, the session <strong class="text-white">auto-ends</strong></p>
+        <p>📚 New games are <strong class="text-white">auto-added</strong> with cover art</p>
+        <p>🎯 Works with <strong class="text-white">any game</strong> Discord detects — not just Steam!</p>
+      </div>
+      <p class="text-gray-600 text-xs mt-4">
+        ⚠️ Make sure <strong class="text-gray-500">Display current activity</strong> is enabled in Discord
+        Settings → Activity Privacy.
+      </p>
+    </div>
+
+  {% else %}
+    <!-- Not connected -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-4">
+      <div class="text-center mb-6">
+        <p class="text-4xl mb-3">💬</p>
+        <h2 class="text-white font-semibold text-lg">Connect your Discord account</h2>
+        <p class="text-gray-400 text-sm mt-2">
+          Discord detects any game you're playing — not just Steam. Connect it for truly universal auto-tracking.
+        </p>
+      </div>
+
+      <a href="{% url 'discord_oauth' %}"
+         hx-boost="false"
+         class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition">
+        Connect with Discord
+      </a>
+    </div>
+
+    <!-- Requirements -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-white font-semibold mb-3">Requirements</h2>
+      <div class="space-y-2 text-gray-400 text-sm">
+        <p>✅ Discord must be <strong class="text-white">running</strong> while you play</p>
+        <p>✅ <strong class="text-white">Display current activity</strong> must be enabled</p>
+        <p>✅ Works with Steam, Epic, Xbox, and more</p>
+      </div>
+      <p class="text-gray-600 text-xs mt-4">
+        Enable in Discord: User Settings → Activity Privacy → Display current activity as a status message
+      </p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

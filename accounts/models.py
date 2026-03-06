@@ -9,5 +9,13 @@ class User(AbstractUser):
     steam_avatar = models.URLField(blank=True)
     steam_polling_enabled = models.BooleanField(default=False)
 
+    # Discord integration
+    discord_id = models.CharField(max_length=50, blank=True)
+    discord_username = models.CharField(max_length=100, blank=True)
+    discord_avatar = models.URLField(blank=True)
+    discord_access_token = models.TextField(blank=True)
+    discord_refresh_token = models.TextField(blank=True)
+    discord_polling_enabled = models.BooleanField(default=False)
+
     def __str__(self):
         return self.username
