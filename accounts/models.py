@@ -17,5 +17,14 @@ class User(AbstractUser):
     discord_refresh_token = models.TextField(blank=True)
     discord_polling_enabled = models.BooleanField(default=False)
 
+    # Xbox integration
+    xbox_id = models.CharField(max_length=50, blank=True)
+    xbox_gamertag = models.CharField(max_length=100, blank=True)
+    xbox_avatar = models.URLField(blank=True)
+    xbox_access_token = models.TextField(blank=True)
+    xbox_refresh_token = models.TextField(blank=True)
+    xbox_token_expires = models.DateTimeField(null=True, blank=True)
+    xbox_polling_enabled = models.BooleanField(default=False)
+
     def __str__(self):
         return self.username

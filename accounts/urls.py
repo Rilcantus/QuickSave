@@ -19,5 +19,10 @@ urlpatterns = [
     path('settings/discord/disconnect/', views.discord_disconnect, name='discord_disconnect'),
     path('settings/discord/toggle/', views.discord_toggle_polling, name='discord_toggle_polling'),
     path('settings/steam/poll/', views.steam_poll_now, name='steam_poll_now'),
-
+    path('settings/xbox/', views.xbox_settings, name='xbox_settings'),
+    path('settings/xbox/connect/', views.xbox_connect, name='xbox_connect'),
+    path('xbox/callback/', views.xbox_callback, name='xbox_callback'),
+    path('settings/xbox/disconnect/', views.xbox_disconnect, name='xbox_disconnect'),
+    path('settings/xbox/toggle/', views.xbox_toggle_polling, name='xbox_toggle_polling'),
+    path('settings/xbox/poll/', views.xbox_poll_now, name='xbox_poll_now'),
 ]

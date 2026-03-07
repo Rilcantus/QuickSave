@@ -266,3 +266,114 @@ def discord_toggle_polling(request):
         status = "enabled" if request.user.discord_polling_enabled else "paused"
         messages.success(request, f"Discord auto-tracking {status}.")
     return redirect('discord_settings')
+
+# ─── XBOX VIEWS ───────────────────────────────────────────────────────────────
+# Add these to accounts/views.py
+
+@login_required
+def xbox_connect(request):
+    """Redirect to Microsoft OAuth."""
+    from .xbox_api import get_oauth_url
+    from django.http import HttpResponseRedirect
+    url = get_oauth_url()
+    return HttpResponseRedirect(url)
+
+
+def xbox_callback(request):
+    """Handle Microsoft OAuth callback."""
+    from .xbox_api import exchange_code, get_xsts_token, get_xbox_profile
+    from django.utils import timezone
+    from datetime import timedelta
+
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+    error_description = request.GET.get('error_description', '')
+
+    if error or not code:
+        messages.error(request, f"Xbox error: {error} — {error_description}")
+        return redirect('account_settings')
+
+    # Exchange code for Microsoft tokens
+    tokens = exchange_code(code)
+    if not tokens or 'access_token' not in tokens:
+        messages.error(request, "Failed to connect Xbox. Please try again.")
+        return redirect('account_settings')
+
+    # Get XSTS token for Xbox Live API calls
+    xsts_token, uhs = get_xsts_token(tokens['access_token'])
+    if not xsts_token:
+        messages.error(request, "Failed to authenticate with Xbox Live.")
+        return redirect('account_settings')
+
+    # Get Xbox profile
+    profile = get_xbox_profile(xsts_token, uhs)
+    if not profile:
+        messages.error(request, "Failed to get Xbox profile.")
+        return redirect('account_settings')
+
+    # Save to user
+    expires_in = tokens.get('expires_in', 3600)
+    request.user.xbox_id = profile.get('xuid', '')
+    request.user.xbox_gamertag = profile.get('gamertag', '')
+    request.user.xbox_avatar = profile.get('avatar', '')
+    request.user.xbox_access_token = tokens['access_token']
+    request.user.xbox_refresh_token = tokens.get('refresh_token', '')
+    request.user.xbox_token_expires = timezone.now() + timedelta(seconds=expires_in)
+    request.user.xbox_polling_enabled = True
+    request.user.save()
+
+    messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
+    return redirect('xbox_settings')
+
+
+@login_required
+def xbox_disconnect(request):
+    if request.method == 'POST':
+        request.user.xbox_id = ''
+        request.user.xbox_gamertag = ''
+        request.user.xbox_avatar = ''
+        request.user.xbox_access_token = ''
+        request.user.xbox_refresh_token = ''
+        request.user.xbox_token_expires = None
+        request.user.xbox_polling_enabled = False
+        request.user.save()
+        messages.success(request, "Xbox account disconnected.")
+    return redirect('account_settings')
+
+
+@login_required
+def xbox_settings(request):
+    return render(request, 'accounts/xbox_settings.html')
+
+
+@login_required
+def xbox_toggle_polling(request):
+    if request.method == 'POST':
+        request.user.xbox_polling_enabled = not request.user.xbox_polling_enabled
+        request.user.save()
+        status = "enabled" if request.user.xbox_polling_enabled else "paused"
+        messages.success(request, f"Xbox auto-tracking {status}.")
+    return redirect('xbox_settings')
+
+
+@login_required
+def xbox_poll_now(request):
+    """Manually trigger an Xbox presence check."""
+    if request.method == 'POST':
+        from .xbox_api import get_fresh_xsts, get_currently_playing
+        if not request.user.xbox_id:
+            messages.error(request, "No Xbox account connected.")
+            return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+        xsts_token, uhs = get_fresh_xsts(request.user)
+        if not xsts_token:
+            messages.error(request, "Failed to refresh Xbox token.")
+            return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+        playing = get_currently_playing(xsts_token, uhs)
+        if playing:
+            messages.success(request, f"Xbox: Currently playing {playing['name']}")
+        else:
+            messages.info(request, "Xbox: Not currently playing anything.")
+
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))

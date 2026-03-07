@@ -143,6 +143,10 @@ DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID', default='')
 DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET', default='')
 DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI', default='')
 
+MICROSOFT_CLIENT_ID = os.environ.get('MICROSOFT_CLIENT_ID', '')
+MICROSOFT_CLIENT_SECRET = os.environ.get('MICROSOFT_CLIENT_SECRET', '')
+MICROSOFT_REDIRECT_URI = os.environ.get('MICROSOFT_REDIRECT_URI', 'https://www.quicksave.site/accounts/xbox/callback/')
+
 Q_CLUSTER = {
     'name': 'quicksave',
     'workers': 2,

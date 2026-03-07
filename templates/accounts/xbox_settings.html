@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Xbox Settings — QuickSave{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 mb-8">
+    <a href="{% url 'account_settings' %}" class="text-gray-400 hover:text-gray-200 transition">← Settings</a>
+    <span class="text-gray-600">/</span>
+    <h1 class="text-xl font-bold text-white">Xbox Integration</h1>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded-lg text-sm
+        {% if message.tags == 'success' %}bg-green-500/10 border border-green-500/20 text-green-400
+        {% elif message.tags == 'error' %}bg-red-500/10 border border-red-500/20 text-red-400
+        {% else %}bg-blue-500/10 border border-blue-500/20 text-blue-400{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if user.xbox_id %}
+  <!-- Connected State -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+    <div class="flex items-center gap-4">
+      {% if user.xbox_avatar %}
+        <img src="{{ user.xbox_avatar }}" class="w-14 h-14 rounded-full border border-gray-700" alt="Xbox Avatar">
+      {% else %}
+        <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl">🎮</div>
+      {% endif %}
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-white font-semibold text-lg">{{ user.xbox_gamertag }}</span>
+          <span class="inline-flex items-center gap-1 bg-green-500/10 text-green-400 text-xs px-2 py-0.5 rounded-full border border-green-500/20">
+            <span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Connected
+          </span>
+        </div>
+        <p class="text-gray-400 text-sm mt-0.5">Xbox ID: {{ user.xbox_id }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto-tracking toggle -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-white font-semibold">Auto-tracking</h3>
+        <p class="text-gray-400 text-sm mt-1">Automatically start and stop sessions when you play on Xbox.</p>
+      </div>
+      <form method="post" action="{% url 'xbox_toggle_polling' %}">
+        {% csrf_token %}
+        <button type="submit"
+          class="px-4 py-2 rounded-lg text-sm font-medium transition
+          {% if user.xbox_polling_enabled %}
+            bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20
+          {% else %}
+            bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700
+          {% endif %}">
+          {% if user.xbox_polling_enabled %}Enabled{% else %}Disabled{% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manual sync -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-white font-semibold">Check Now</h3>
+        <p class="text-gray-400 text-sm mt-1">Manually check what you're currently playing on Xbox.</p>
+      </div>
+      <form method="post" action="{% url 'xbox_poll_now' %}">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-800 text-gray-200 border border-gray-700 hover:bg-gray-700 transition">
+          Check Now
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Disconnect -->
+  <div class="bg-gray-900 border border-red-500/10 rounded-2xl p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-white font-semibold">Disconnect Xbox</h3>
+        <p class="text-gray-400 text-sm mt-1">Remove your Xbox account from QuickSave.</p>
+      </div>
+      <form method="post" action="{% url 'xbox_disconnect' %}">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition">
+          Disconnect
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Not connected state -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+    <div class="text-5xl mb-4">🎮</div>
+    <h2 class="text-white font-bold text-xl mb-2">Connect your Xbox account</h2>
+    <p class="text-gray-400 text-sm mb-6 max-w-sm mx-auto">Link your Microsoft account to automatically track your Xbox gaming sessions.</p>
+    <a href="{% url 'xbox_connect' %}" class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-xl transition">
+      Connect Xbox
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
