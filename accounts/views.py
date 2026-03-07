@@ -6,6 +6,11 @@ from django.contrib import messages
 from .forms import RegisterForm, LoginForm, UpdateProfileForm
 
 
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'landing.html')
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')

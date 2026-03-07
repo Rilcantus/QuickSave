@@ -14,6 +14,7 @@ def service_worker(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
+    path('', account_views.landing, name='landing'),
     path('accounts/', include('accounts.urls')),
     path('games/', include('games.urls')),
     path('journal/', include('journal.urls')),
