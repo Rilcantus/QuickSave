@@ -81,18 +81,10 @@
     });
 
     // Intercept all nav link clicks
-    document.addEventListener('click', function(e) {
+    window.addEventListener('beforeunload', function(e) {
       if (sessionEnding) return;
-      const link = e.target.closest('a');
-      if (link && link.href && !link.href.startsWith('#')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const confirmed = confirm('⚠️ You have an active session running! Are you sure you want to leave?');
-        if (confirmed) {
-          sessionEnding = true;
-          window.location.href = link.href;
-        }
-      }
+      e.preventDefault();
+      e.returnValue = '';
     });
 
   })();
