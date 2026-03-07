@@ -1,37 +1,51 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}QuickSave — Your Gaming Journal{% endblock %}
-
-{% block content %}
-{% endblock %}
-
-{% block extra_body %}
-<div class="min-h-screen bg-gray-950 text-gray-100">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuickSave — Your Gaming Journal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-950 text-gray-100 antialiased">
 
   <!-- NAV -->
   <nav class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-transparent transition-all duration-300" id="landing-nav">
     <a href="/" class="text-brand-400 font-bold text-xl tracking-tight">QuickSave</a>
     <div class="flex items-center gap-4">
-      <a href="{% url 'login' %}" class="text-gray-400 hover:text-gray-100 text-sm transition">Sign in</a>
-      <a href="{% url 'register' %}" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Get Started</a>
+      <a href="/accounts/login/" class="text-gray-400 hover:text-gray-100 text-sm transition">Sign in</a>
+      <a href="/accounts/register/" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Get Started</a>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 relative overflow-hidden">
-    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
-      <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
+      <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
       Early Access — Free to use
     </div>
     <h1 class="text-5xl md:text-7xl font-bold tracking-tight leading-none text-white max-w-3xl">
-      Your games deserve<br><span class="text-brand-400">to be remembered.</span>
+      Your games deserve<br><span class="text-green-400">to be remembered.</span>
     </h1>
     <p class="mt-6 text-gray-400 text-lg max-w-lg leading-relaxed">Track sessions, journal your runs, and understand how you actually play — with automatic Steam detection.</p>
     <div class="mt-10 flex items-center gap-4 flex-wrap justify-center">
-      <a href="{% url 'register' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-8 py-3.5 rounded-xl transition text-base">Start for free →</a>
-      <a href="{% url 'login' %}" class="text-gray-400 hover:text-gray-200 text-sm transition">Already have an account?</a>
+      <a href="/accounts/register/" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3.5 rounded-xl transition text-base">Start for free →</a>
+      <a href="/accounts/login/" class="text-gray-400 hover:text-gray-200 text-sm transition">Already have an account?</a>
     </div>
     <p class="mt-4 text-gray-600 text-xs">No credit card required</p>
   </section>
@@ -39,7 +53,7 @@
   <!-- FEATURES -->
   <section class="py-24 px-6 max-w-6xl mx-auto">
     <div class="text-center mb-16">
-      <p class="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Features</p>
+      <p class="text-green-400 text-xs font-semibold uppercase tracking-widest mb-3">Features</p>
       <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Everything you need to track your journey.</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -81,23 +95,23 @@
   <!-- ROADMAP -->
   <section class="py-24 px-6 max-w-6xl mx-auto">
     <div class="text-center mb-16">
-      <p class="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Roadmap</p>
+      <p class="text-green-400 text-xs font-semibold uppercase tracking-widest mb-3">Roadmap</p>
       <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">What's coming next.</h2>
       <p class="text-gray-400 mt-3 text-sm">QuickSave is actively being built. Here's what's live and what's on the way.</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
+      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Steam Auto-Tracking</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Sessions start and stop automatically when you play on Steam.</p>
       </div>
-      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
+      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Journal & Run Tracking</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Full journaling with run labels, mood tracking, and session notes.</p>
       </div>
-      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
+      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Stats & Charts</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Playtime trends and session history with beautiful visualizations.</p>
       </div>
@@ -128,655 +142,32 @@
 
   <!-- CTA -->
   <section class="py-24 px-6 text-center relative overflow-hidden">
-    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-64 bg-brand-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
-    <h2 class="text-4xl md:text-5xl font-bold text-white tracking-tight max-w-xl mx-auto leading-tight">Start tracking your <span class="text-brand-400">gaming story.</span></h2>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-64 bg-green-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+    <h2 class="text-4xl md:text-5xl font-bold text-white tracking-tight max-w-xl mx-auto leading-tight">Start tracking your <span class="text-green-400">gaming story.</span></h2>
     <p class="text-gray-400 mt-4 mb-10 max-w-sm mx-auto">Free to use. No credit card. Just your games and your journal.</p>
-    <a href="{% url 'register' %}" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-10 py-4 rounded-xl transition text-base inline-block">Create your account →</a>
+    <a href="/accounts/register/" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-xl transition text-base inline-block">Create your account →</a>
   </section>
 
   <!-- FOOTER -->
   <footer class="border-t border-gray-800 px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 max-w-6xl mx-auto">
-    <span class="text-brand-400 font-bold text-lg">QuickSave</span>
+    <span class="text-green-400 font-bold text-lg">QuickSave</span>
     <div class="flex items-center gap-6">
-      <a href="{% url 'login' %}" class="text-gray-500 hover:text-gray-300 text-sm transition">Sign In</a>
-      <a href="{% url 'register' %}" class="text-gray-500 hover:text-gray-300 text-sm transition">Register</a>
+      <a href="/accounts/login/" class="text-gray-500 hover:text-gray-300 text-sm transition">Sign In</a>
+      <a href="/accounts/register/" class="text-gray-500 hover:text-gray-300 text-sm transition">Register</a>
       <a href="https://github.com/Rilcantus/QuickSave" target="_blank" class="text-gray-500 hover:text-gray-300 text-sm transition">GitHub</a>
     </div>
     <span class="text-gray-600 text-xs">© 2026 QuickSave</span>
   </footer>
 
-</div>
-
-<script>
-  const nav = document.getElementById('landing-nav');
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 20) {
-      nav.classList.add('bg-gray-950/90', 'backdrop-blur-md', 'border-gray-800');
-    } else {
-      nav.classList.remove('bg-gray-950/90', 'backdrop-blur-md', 'border-gray-800');
-    }
-  });
-</script>
-{% endblock %}
-<!--REMOVE THIS LINE AND EVERYTHING BELOW-->
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QuickSave — Your Gaming Journal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0c0c0d;
-      --surface: #141416;
-      --border: #1f1f22;
-      --green: #22c55e;
-      --green-dim: #16a34a;
-      --text: #e8e8e8;
-      --muted: #6b6b72;
-      --faint: #1a1a1d;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 300;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* NAV */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 2.5rem;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s, background 0.3s;
-    }
-    nav.scrolled {
-      background: rgba(12,12,13,0.9);
-      backdrop-filter: blur(12px);
-      border-color: var(--border);
-    }
-    .nav-logo {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.25rem;
-      color: var(--green);
-      text-decoration: none;
-      letter-spacing: -0.02em;
-    }
-    .nav-cta {
-      background: var(--green);
-      color: #000;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      padding: 0.5rem 1.25rem;
-      border-radius: 4px;
-      text-decoration: none;
-      transition: background 0.2s;
-    }
-    .nav-cta:hover { background: #16a34a; }
-
-    /* HERO */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 8rem 2rem 6rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -20%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(34,197,94,0.07) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .hero-tag {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--green);
-      border: 1px solid rgba(34,197,94,0.25);
-      padding: 0.35rem 0.85rem;
-      border-radius: 100px;
-      margin-bottom: 2rem;
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards 0.1s;
-    }
-
-    .hero h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(3rem, 8vw, 6.5rem);
-      line-height: 1.05;
-      letter-spacing: -0.03em;
-      color: var(--text);
-      max-width: 800px;
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards 0.25s;
-    }
-
-    .hero h1 em {
-      font-style: italic;
-      color: var(--green);
-    }
-
-    .hero-sub {
-      margin-top: 1.5rem;
-      font-size: 1.05rem;
-      color: var(--muted);
-      max-width: 480px;
-      font-weight: 300;
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards 0.4s;
-    }
-
-    .hero-actions {
-      margin-top: 2.5rem;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards 0.55s;
-    }
-
-    .btn-primary {
-      background: var(--green);
-      color: #000;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 0.85rem 2rem;
-      border-radius: 5px;
-      text-decoration: none;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .btn-primary:hover { background: #16a34a; transform: translateY(-1px); }
-
-    .btn-ghost {
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .btn-ghost:hover { color: var(--text); }
-
-    .hero-note {
-      margin-top: 1.25rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards 0.7s;
-    }
-
-    /* DIVIDER */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: var(--border);
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    /* FEATURES */
-    .features {
-      padding: 7rem 2rem;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--green);
-      margin-bottom: 1rem;
-    }
-
-    .section-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 4vw, 3rem);
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      max-width: 500px;
-      margin-bottom: 4rem;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .feature-card {
-      background: var(--surface);
-      padding: 2.25rem;
-      transition: background 0.2s;
-    }
-    .feature-card:hover { background: var(--faint); }
-
-    .feature-icon {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .feature-card h3 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.15rem;
-      letter-spacing: -0.01em;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .feature-card p {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    /* STATS STRIP */
-    .stats-strip {
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 3rem 2rem;
-      display: flex;
-      justify-content: center;
-      gap: 5rem;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-num {
-      font-family: 'DM Serif Display', serif;
-      font-size: 2.5rem;
-      color: var(--green);
-      letter-spacing: -0.03em;
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-top: 0.4rem;
-    }
-
-    /* ROADMAP */
-    .roadmap {
-      padding: 7rem 2rem;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .roadmap-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-      margin-top: 3rem;
-    }
-
-    .roadmap-card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.75rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .roadmap-card.done {
-      border-color: rgba(34,197,94,0.2);
-      background: rgba(34,197,94,0.03);
-    }
-
-    .roadmap-card.soon {
-      border-color: rgba(234,179,8,0.2);
-      background: rgba(234,179,8,0.02);
-    }
-
-    .roadmap-card.later {
-      border-color: var(--border);
-      background: var(--faint);
-    }
-
-    .roadmap-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 0.2rem 0.6rem;
-      border-radius: 100px;
-      margin-bottom: 1rem;
-      display: inline-block;
-    }
-
-    .done .roadmap-badge { background: rgba(34,197,94,0.15); color: var(--green); }
-    .soon .roadmap-badge { background: rgba(234,179,8,0.15); color: #eab308; }
-    .later .roadmap-badge { background: rgba(255,255,255,0.05); color: var(--muted); }
-
-    .roadmap-card h3 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.05rem;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .roadmap-card p {
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* CTA SECTION */
-    .cta-section {
-      padding: 7rem 2rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cta-section::before {
-      content: '';
-      position: absolute;
-      bottom: -10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .cta-section h2 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      max-width: 600px;
-      margin: 0 auto 1.5rem;
-    }
-
-    .cta-section p {
-      color: var(--muted);
-      font-size: 1rem;
-      max-width: 400px;
-      margin: 0 auto 2.5rem;
-    }
-
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: gap;
-      gap: 1rem;
-    }
-
-    .footer-logo {
-      font-family: 'DM Serif Display', serif;
-      color: var(--green);
-      font-size: 1rem;
-      text-decoration: none;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 2rem;
-    }
-
-    .footer-links a {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .footer-links a:hover { color: var(--text); }
-
-    .footer-copy {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-
-    /* ANIMATIONS */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @media (max-width: 600px) {
-      nav { padding: 1rem 1.25rem; }
-      .stats-strip { gap: 2.5rem; }
-      footer { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; }
-    }
-  </style>
-</head>
-<body>
-
-  <nav id="nav">
-    <a class="nav-logo" href="#">QuickSave</a>
-    <a class="nav-cta" href="/accounts/register/">Get Started</a>
-  </nav>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-tag">Now in Early Access</div>
-    <h1>Your games deserve<br><em>to be remembered.</em></h1>
-    <p class="hero-sub">Track sessions, journal your runs, and understand how you actually play — automatically.</p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="/accounts/register/">Start for free</a>
-      <a class="btn-ghost" href="/accounts/login/">Sign in →</a>
-    </div>
-    <p class="hero-note">Free to use · No credit card required</p>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- FEATURES -->
-  <section class="features">
-    <div class="reveal">
-      <p class="section-label">Features</p>
-      <h2 class="section-title">Everything you need to track your journey.</h2>
-    </div>
-    <div class="features-grid reveal">
-      <div class="feature-card">
-        <div class="feature-icon">⏱</div>
-        <h3>Session Tracking</h3>
-        <p>Start a session with one click. QuickSave logs your playtime, mood, and progress automatically.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📓</div>
-        <h3>Gaming Journal</h3>
-        <p>Write about your runs. Log accomplishments, blockers, and what you want to do next time.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🏷️</div>
-        <h3>Run Labels</h3>
-        <p>Organize playthroughs with custom labels. Track multiple runs of the same game separately.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>Steam Auto-Tracking</h3>
-        <p>Connect your Steam account and sessions start and end automatically when you launch a game.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Stats & Charts</h3>
-        <p>See your playtime trends, most active days, and how your habits change over time.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📱</div>
-        <h3>Works Everywhere</h3>
-        <p>Installable as a PWA on mobile and desktop. Your journal is always with you.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- STATS STRIP -->
-  <div class="stats-strip reveal">
-    <div class="stat">
-      <div class="stat-num">∞</div>
-      <div class="stat-label">Games supported</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">Free to use</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">Steam</div>
-      <div class="stat-label">Auto-tracking</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">PWA</div>
-      <div class="stat-label">Mobile ready</div>
-    </div>
-  </div>
-
-  <!-- ROADMAP -->
-  <section class="roadmap">
-    <div class="reveal">
-      <p class="section-label">Roadmap</p>
-      <h2 class="section-title">What's coming next.</h2>
-    </div>
-    <div class="roadmap-grid reveal">
-      <div class="roadmap-card done">
-        <span class="roadmap-badge">Live</span>
-        <h3>Steam Auto-Tracking</h3>
-        <p>Sessions start and end automatically when you play on Steam.</p>
-      </div>
-      <div class="roadmap-card done">
-        <span class="roadmap-badge">Live</span>
-        <h3>Journal & Runs</h3>
-        <p>Full journaling with run labels, mood tracking, and goals.</p>
-      </div>
-      <div class="roadmap-card done">
-        <span class="roadmap-badge">Live</span>
-        <h3>Stats & Charts</h3>
-        <p>Playtime trends and session history with beautiful charts.</p>
-      </div>
-      <div class="roadmap-card soon">
-        <span class="roadmap-badge">Coming Soon</span>
-        <h3>Desktop Companion</h3>
-        <p>A system tray app for Discord RPC detection and richer auto-tracking.</p>
-      </div>
-      <div class="roadmap-card soon">
-        <span class="roadmap-badge">Coming Soon</span>
-        <h3>Public API</h3>
-        <p>Build on top of QuickSave. Sync your data with other tools and services.</p>
-      </div>
-      <div class="roadmap-card later">
-        <span class="roadmap-badge">Planned</span>
-        <h3>Mobile App</h3>
-        <p>Native iOS and Android apps for logging on the go.</p>
-      </div>
-      <div class="roadmap-card later">
-        <span class="roadmap-badge">Planned</span>
-        <h3>Xbox & PlayStation</h3>
-        <p>Cross-platform tracking beyond Steam via the desktop companion.</p>
-      </div>
-      <div class="roadmap-card later">
-        <span class="roadmap-badge">Planned</span>
-        <h3>Social Features</h3>
-        <p>Share runs, compare stats with friends, and discover what others are playing.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- CTA -->
-  <section class="cta-section reveal">
-    <h2>Start tracking your<br><em style="font-style:italic; color: var(--green)">gaming story.</em></h2>
-    <p>Free to use. No credit card. Just your games and your journal.</p>
-    <a class="btn-primary" href="/accounts/register/">Create your account</a>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <a class="footer-logo" href="#">QuickSave</a>
-    <div class="footer-links">
-      <a href="/accounts/login/">Sign In</a>
-      <a href="/accounts/register/">Register</a>
-      <a href="https://github.com/Rilcantus/QuickSave" target="_blank">GitHub</a>
-    </div>
-    <span class="footer-copy">© 2026 QuickSave</span>
-  </footer>
-
   <script>
-    // Sticky nav
-    const nav = document.getElementById('nav');
+    const nav = document.getElementById('landing-nav');
     window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 20);
+      if (window.scrollY > 20) {
+        nav.classList.add('bg-gray-950/90', 'backdrop-blur', 'border-gray-800');
+      } else {
+        nav.classList.remove('bg-gray-950/90', 'backdrop-blur', 'border-gray-800');
+      }
     });
-
-    // Scroll reveal
-    const reveals = document.querySelectorAll('.reveal');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          observer.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.1 });
-    reveals.forEach(el => observer.observe(el));
   </script>
 
 </body>
