@@ -190,23 +190,45 @@ def steam_poll_now(request):
 @login_required
 def sync_all(request):
     if request.method == 'POST':
-        synced = []
+        found = []
+        checked = []
+
         if request.user.steam_id and request.user.steam_polling_enabled:
             from .tasks import poll_steam_for_user
+            from .steam import get_currently_playing as steam_playing
+            checked.append('Steam')
+            result = steam_playing(request.user.steam_id)
+            if result:
+                found.append(f"Steam: {result['name']}")
             poll_steam_for_user(request.user.pk)
-            synced.append('Steam')
+
         if request.user.xbox_id and request.user.xbox_polling_enabled:
             from .tasks import poll_xbox_for_user
+            from .xbox_api import get_fresh_xsts, get_currently_playing as xbox_playing
+            checked.append('Xbox')
+            xsts_token, uhs = get_fresh_xsts(request.user)
+            if xsts_token:
+                result = xbox_playing(xsts_token, uhs)
+                if result:
+                    found.append(f"Xbox: {result['name']}")
             poll_xbox_for_user(request.user.pk)
-            synced.append('Xbox')
+
         if request.user.discord_id and request.user.discord_polling_enabled:
             from .tasks import poll_discord_for_user
+            from .discord_api import get_currently_playing as discord_playing
+            checked.append('Discord')
+            result = discord_playing(request.user.discord_access_token)
+            if result:
+                found.append(f"Discord: {result['name']}")
             poll_discord_for_user(request.user.pk)
-            synced.append('Discord')
-        if synced:
-            messages.success(request, f"Synced {', '.join(synced)}!")
+
+        if found:
+            messages.success(request, f"Now playing: {', '.join(found)}")
+        elif checked:
+            messages.info(request, f"Checked {', '.join(checked)} — not playing anything right now.")
         else:
             messages.info(request, "No platforms connected with auto-tracking enabled.")
+
         next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
         return redirect(next_url)
     return redirect('dashboard')
