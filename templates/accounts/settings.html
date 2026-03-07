@@ -86,6 +86,37 @@
     </a>
   </div>
 
+  <!-- Xbox integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">Xbox Integration</p>
+        <p class="text-gray-500 text-sm">
+          {% if request.user.xbox_id %}
+            Connected as {{ request.user.xbox_gamertag }}
+            {% if request.user.xbox_polling_enabled %}
+              · <span class="text-brand-400">Auto-tracking on</span>
+            {% else %}
+              · <span class="text-gray-600">Paused</span>
+            {% endif %}
+          {% else %}
+            Auto-track your Xbox sessions
+          {% endif %}
+        </p>
+      </div>
+      {% if request.user.xbox_avatar %}
+        <img src="{{ request.user.xbox_avatar }}" alt="Xbox"
+             class="w-10 h-10 rounded-full border border-gray-700" />
+      {% else %}
+        <span class="text-3xl">🎮</span>
+      {% endif %}
+    </div>
+    <a href="{% url 'xbox_settings' %}"
+       class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      {% if request.user.xbox_id %}Manage Xbox{% else %}Connect Xbox{% endif %}
+    </a>
+  </div>
+
   <!-- Discord integration -->
   <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">
