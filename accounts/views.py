@@ -190,6 +190,19 @@ def steam_poll_now(request):
 @login_required
 def sync_all(request):
     if request.method == 'POST':
+        from play_sessions.models import Session
+
+        # If already in an active session, just go there
+        active_session = Session.objects.filter(
+            game__user=request.user,
+            ended_at__isnull=True
+        ).select_related('game').first()
+
+        if active_session:
+            messages.info(request, f"Already tracking: {active_session.game.title}")
+            return redirect('session_active', pk=active_session.pk)
+
+        # No active session — poll all platforms
         found = []
         checked = []
 
@@ -222,20 +235,17 @@ def sync_all(request):
                 found.append(f"Discord: {result['name']}")
             poll_discord_for_user(request.user.pk)
 
-        # Check if there's now an active session and redirect to it
-        from play_sessions.models import Session
+        # Check again for active session after polling
         active_session = Session.objects.filter(
             game__user=request.user,
             ended_at__isnull=True
         ).select_related('game').first()
 
         if active_session:
-            messages.success(request, f"Now playing: {', '.join(found)} — session started!")
+            messages.success(request, f"Session started: {active_session.game.title}!")
             return redirect('session_active', pk=active_session.pk)
 
-        if found:
-            messages.success(request, f"Now playing: {', '.join(found)}")
-        elif checked:
+        if checked:
             messages.info(request, f"Checked {', '.join(checked)} — not playing anything right now.")
         else:
             messages.info(request, "No platforms connected with auto-tracking enabled.")
