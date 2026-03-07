@@ -123,7 +123,7 @@
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between">
           <div>
             <p class="text-white font-medium">
-              {{ session.started_at|date:"M j, Y" }}
+              <span data-utc="{{ session.started_at|date:'c' }}">{{ session.started_at|date:"M j, Y" }}</span>
               {% if session.descriptor %}
                 <span class="ml-2 text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
                   {{ session.descriptor.name }}
@@ -174,7 +174,7 @@
         <a href="{% url 'journal_detail' entry.pk %}"
           class="block bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-brand-500 transition group">
           <p class="text-white font-medium group-hover:text-brand-400 transition">
-            {{ entry.created_at|date:"F j, Y" }}
+            <span data-utc="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"F j, Y" }}</span>
             {% if entry.session.descriptor %}
               <span class="ml-2 text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
                 {{ entry.session.descriptor.name }}

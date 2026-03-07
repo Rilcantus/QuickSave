@@ -20,7 +20,7 @@
   {% endif %}
 
   <p class="text-gray-500 text-sm text-center mb-8">
-    Started {{ session.started_at|date:"g:i A" }}
+    Started <span data-utc="{{ session.started_at|date:'c' }}">{{ session.started_at|date:"g:i A" }}</span>
   </p>
 
   <!-- Timer -->

@@ -76,7 +76,7 @@
             <div>
               <p class="text-white font-semibold">{{ session.game.title }}</p>
               <p class="text-brand-400 text-sm">
-                Session active since {{ session.started_at|date:"g:i A" }}
+                Session active since <span data-utc="{{ session.started_at|date:'c' }}">{{ session.started_at|date:"g:i A" }}</span>
                 {% if session.descriptor %} · {{ session.descriptor.name }}{% endif %}
               </p>
             </div>
@@ -198,7 +198,7 @@
                         </span>
                       {% endif %}
                     </p>
-                    <p class="text-gray-500 text-xs mt-0.5">{{ entry.created_at|date:"F j, Y · g:i A" }}</p>
+                    <p class="text-gray-500 text-xs mt-0.5"><span data-utc="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"F j, Y · g:i A" }}</span></p>
                     {% if entry.body %}
                       <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ entry.body }}</p>
                     {% endif %}

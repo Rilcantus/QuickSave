@@ -42,7 +42,7 @@
                 </a>
               {% endif %}
               <p class="text-gray-500 text-sm mt-0.5">
-                {{ session.started_at|date:"F j, Y · g:i A" }}
+                <span data-utc="{{ session.started_at|date:'c' }}">{{ session.started_at|date:"F j, Y · g:i A" }}</span>
                 {% if session.duration_display %}
                   · <span class="text-brand-400">{{ session.duration_display }}</span>
                 {% endif %}
