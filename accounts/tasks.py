@@ -107,6 +107,26 @@ def poll_discord_for_user(user_id):
             active_session.end()
         elif active_session:
             # Another platform owns it — don't touch it
+            return
+
+        game = Game.objects.filter(user=user, title__iexact=game_name).first()
+        if not game:
+            game = Game(user=user, title=game_name)
+            results = search_games(game_name)
+            if results and results[0]['image']:
+                game.cover_image_url = results[0]['image']
+            game.save()
+
+        Session.objects.create(
+            game=game,
+            started_at=timezone.now(),
+            source=Session.SOURCE_DISCORD,
+        )
+
+    else:
+        # Only end session if Discord owns it
+        if active_session and active_session.source == Session.SOURCE_DISCORD:
+            active_session.end()
 
 
 def schedule_discord_polling():
