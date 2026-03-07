@@ -162,3 +162,81 @@ def schedule_discord_polling():
 
     for user in users:
         async_task('accounts.tasks.poll_discord_for_user', user.pk)
+
+def poll_xbox_for_user(user_id):
+    """
+    Poll Xbox for a user and auto-start/end sessions.
+    Called by django-q every 5 minutes.
+    """
+    from accounts.models import User
+    from accounts.xbox_api import get_fresh_xsts, get_currently_playing
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return
+
+    if not user.xbox_id or not user.xbox_polling_enabled:
+        return
+
+    if not user.xbox_access_token:
+        return
+
+    xsts_token, uhs = get_fresh_xsts(user)
+    if not xsts_token:
+        return
+
+    currently_playing = get_currently_playing(xsts_token, uhs)
+
+    active_session = Session.objects.filter(
+        game__user=user,
+        ended_at__isnull=True
+    ).select_related('game').first()
+
+    if currently_playing:
+        game_name = currently_playing['name']
+
+        # Already in a session for this game
+        if active_session and active_session.game.title.lower() == game_name.lower():
+            return
+
+        # End any other active session
+        if active_session:
+            active_session.end()
+
+        # Find or create game
+        game = Game.objects.filter(
+            user=user,
+            title__iexact=game_name
+        ).first()
+
+        if not game:
+            game = Game(user=user, title=game_name)
+            results = search_games(game_name)
+            if results and results[0]['image']:
+                game.cover_image_url = results[0]['image']
+            game.save()
+
+        # Start session
+        Session.objects.create(
+            game=game,
+            started_at=timezone.now(),
+        )
+
+    else:
+        if active_session:
+            active_session.end()
+
+
+def schedule_xbox_polling():
+    """Schedule polling for all users with Xbox connected."""
+    from accounts.models import User
+    from django_q.tasks import async_task
+
+    users = User.objects.filter(
+        xbox_polling_enabled=True,
+        xbox_id__isnull=False
+    ).exclude(xbox_id='')
+
+    for user in users:
+        async_task('accounts.tasks.poll_xbox_for_user', user.pk)

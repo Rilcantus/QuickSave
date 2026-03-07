@@ -323,6 +323,11 @@ def xbox_callback(request):
     request.user.save()
 
     messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
+    
+    from .cron import setup_xbox_polling_schedule
+    setup_xbox_polling_schedule()
+
+    messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
     return redirect('xbox_settings')
 
 
