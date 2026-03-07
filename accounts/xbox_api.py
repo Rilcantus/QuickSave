@@ -176,6 +176,9 @@ def get_currently_playing(xsts_token, uhs):
     Uses the presence endpoint.
     Returns dict with game name or None.
     """
+
+    XBOX_IGNORE_TITLES = {'online', 'home', 'dashboard', 'xbox app'}
+
     auth_header = f'XBL3.0 x={uhs};{xsts_token}'
     req = urllib.request.Request(
         'https://userpresence.xboxlive.com/users/me?level=all',
@@ -195,15 +198,15 @@ def get_currently_playing(xsts_token, uhs):
                 return None
             devices = data.get('devices', [])
             for device in devices:
-                titles = device.get('titles', [])
-                for title in titles:
-                    # placement "Full" means actively playing
-                    if title.get('placement') == 'Full' and title.get('name') != 'Home':
-                        return {
-                            'name': title.get('name', ''),
-                            'title_id': title.get('id', ''),
-                            'device': device.get('type', ''),
-                        }
+                    titles = device.get('titles', [])
+                    for title in titles:
+                        name = title.get('name', '')
+                        if title.get('placement') == 'Full' and name.lower() not in XBOX_IGNORE_TITLES:
+                            return {
+                                'name': name,
+                                'title_id': title.get('id', ''),
+                                'device': device.get('type', ''),
+                            }
             return None
     except Exception as e:
         print(f"Xbox presence error: {e}")
