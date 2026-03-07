@@ -188,6 +188,30 @@ def steam_poll_now(request):
     return redirect('dashboard')
 
 @login_required
+def sync_all(request):
+    if request.method == 'POST':
+        synced = []
+        if request.user.steam_id and request.user.steam_polling_enabled:
+            from .tasks import poll_steam_for_user
+            poll_steam_for_user(request.user.pk)
+            synced.append('Steam')
+        if request.user.xbox_id and request.user.xbox_polling_enabled:
+            from .tasks import poll_xbox_for_user
+            poll_xbox_for_user(request.user.pk)
+            synced.append('Xbox')
+        if request.user.discord_id and request.user.discord_polling_enabled:
+            from .tasks import poll_discord_for_user
+            poll_discord_for_user(request.user.pk)
+            synced.append('Discord')
+        if synced:
+            messages.success(request, f"Synced {', '.join(synced)}!")
+        else:
+            messages.info(request, "No platforms connected with auto-tracking enabled.")
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
+        return redirect(next_url)
+    return redirect('dashboard')
+
+@login_required
 def discord_oauth(request):
     """Redirect to Discord OAuth."""
     from .discord_api import get_oauth_url

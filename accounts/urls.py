@@ -25,4 +25,5 @@ urlpatterns = [
     path('settings/xbox/disconnect/', views.xbox_disconnect, name='xbox_disconnect'),
     path('settings/xbox/toggle/', views.xbox_toggle_polling, name='xbox_toggle_polling'),
     path('settings/xbox/poll/', views.xbox_poll_now, name='xbox_poll_now'),
+    path('sync-all/', views.sync_all, name='sync_all'),
 ]
