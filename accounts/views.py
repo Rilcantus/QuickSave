@@ -215,6 +215,14 @@ def sync_all(request):
                 found.append(f"Steam: {result['name']}")
             poll_steam_for_user(request.user.pk)
 
+        # Check after Steam before continuing
+        active_session = Session.objects.filter(
+            game__user=request.user, ended_at__isnull=True
+        ).first()
+        if active_session:
+            messages.success(request, f"Session started: {active_session.game.title}!")
+            return redirect('session_active', pk=active_session.pk)
+
         if request.user.xbox_id and request.user.xbox_polling_enabled:
             from .tasks import poll_xbox_for_user
             from .xbox_api import get_fresh_xsts, get_currently_playing as xbox_playing
@@ -225,6 +233,14 @@ def sync_all(request):
                 if result:
                     found.append(f"Xbox: {result['name']}")
             poll_xbox_for_user(request.user.pk)
+
+        # Check after Xbox before continuing
+        active_session = Session.objects.filter(
+            game__user=request.user, ended_at__isnull=True
+        ).first()
+        if active_session:
+            messages.success(request, f"Session started: {active_session.game.title}!")
+            return redirect('session_active', pk=active_session.pk)
 
         if request.user.discord_id and request.user.discord_polling_enabled:
             from .tasks import poll_discord_for_user
