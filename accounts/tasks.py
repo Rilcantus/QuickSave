@@ -6,10 +6,6 @@ from play_sessions.models import Session
 
 
 def poll_steam_for_user(user_id):
-    """
-    Poll Steam for a user and auto-start/end sessions.
-    Called by django-q every 5 minutes.
-    """
     from accounts.models import User
     try:
         user = User.objects.get(pk=user_id)
@@ -28,42 +24,34 @@ def poll_steam_for_user(user_id):
     if currently_playing:
         game_name = currently_playing['name']
 
-        # If already in a session for this game, do nothing
         if active_session and active_session.game.title.lower() == game_name.lower():
             return
 
-        # End any other active session first
-        if active_session:
+        # Only end session if Steam owns it
+        if active_session and active_session.source == Session.SOURCE_STEAM:
             active_session.end()
+        elif active_session:
+            # Another platform owns it — don't touch it
+            return
 
-        # Find or create the game
-        game = Game.objects.filter(
-            user=user,
-            title__iexact=game_name
-        ).first()
-
+        game = Game.objects.filter(user=user, title__iexact=game_name).first()
         if not game:
-            # Auto-create the game
             game = Game(user=user, title=game_name)
-
-            # Try to get cover art from RAWG
             results = search_games(game_name)
             if results and results[0]['image']:
                 game.cover_image_url = results[0]['image']
-
             game.save()
 
-        # Start a new session
         Session.objects.create(
             game=game,
             started_at=timezone.now(),
+            source=Session.SOURCE_STEAM,
         )
 
     else:
-        # Not playing anything — end active session if exists
-        if active_session:
+        # Only end session if Steam owns it
+        if active_session and active_session.source == Session.SOURCE_STEAM:
             active_session.end()
-
 
 def schedule_steam_polling():
     """Schedule polling for all users with Steam connected."""
@@ -79,10 +67,6 @@ def schedule_steam_polling():
         async_task('accounts.tasks.poll_steam_for_user', user.pk)
 
 def poll_discord_for_user(user_id):
-    """
-    Poll Discord for a user and auto-start/end sessions.
-    Called by django-q every 5 minutes.
-    """
     from accounts.models import User
     from accounts.discord_api import get_currently_playing, refresh_access_token
 
@@ -97,10 +81,8 @@ def poll_discord_for_user(user_id):
     if not user.discord_access_token:
         return
 
-    # Try to get currently playing
     currently_playing = get_currently_playing(user.discord_access_token)
 
-    # If token expired try refreshing
     if currently_playing is None and user.discord_refresh_token:
         tokens = refresh_access_token(user.discord_refresh_token)
         if tokens and 'access_token' in tokens:
@@ -117,37 +99,14 @@ def poll_discord_for_user(user_id):
     if currently_playing:
         game_name = currently_playing['name']
 
-        # Already in a session for this game
         if active_session and active_session.game.title.lower() == game_name.lower():
             return
 
-        # End any other active session
-        if active_session:
+        # Only end session if Discord owns it
+        if active_session and active_session.source == Session.SOURCE_DISCORD:
             active_session.end()
-
-        # Find or create game
-        game = Game.objects.filter(
-            user=user,
-            title__iexact=game_name
-        ).first()
-
-        if not game:
-            game = Game(user=user, title=game_name)
-            results = search_games(game_name)
-            if results and results[0]['image']:
-                game.cover_image_url = results[0]['image']
-            game.save()
-
-        # Start session
-        from django.utils import timezone
-        Session.objects.create(
-            game=game,
-            started_at=timezone.now(),
-        )
-
-    else:
-        if active_session:
-            active_session.end()
+        elif active_session:
+            # Another platform owns it — don't touch it
 
 
 def schedule_discord_polling():
@@ -164,10 +123,6 @@ def schedule_discord_polling():
         async_task('accounts.tasks.poll_discord_for_user', user.pk)
 
 def poll_xbox_for_user(user_id):
-    """
-    Poll Xbox for a user and auto-start/end sessions.
-    Called by django-q every 5 minutes.
-    """
     from accounts.models import User
     from accounts.xbox_api import get_fresh_xsts, get_currently_playing
 
@@ -196,20 +151,17 @@ def poll_xbox_for_user(user_id):
     if currently_playing:
         game_name = currently_playing['name']
 
-        # Already in a session for this game
         if active_session and active_session.game.title.lower() == game_name.lower():
             return
 
-        # End any other active session
-        if active_session:
+        # Only end session if Xbox owns it
+        if active_session and active_session.source == Session.SOURCE_XBOX:
             active_session.end()
+        elif active_session:
+            # Another platform owns it — don't touch it
+            return
 
-        # Find or create game
-        game = Game.objects.filter(
-            user=user,
-            title__iexact=game_name
-        ).first()
-
+        game = Game.objects.filter(user=user, title__iexact=game_name).first()
         if not game:
             game = Game(user=user, title=game_name)
             results = search_games(game_name)
@@ -217,14 +169,15 @@ def poll_xbox_for_user(user_id):
                 game.cover_image_url = results[0]['image']
             game.save()
 
-        # Start session
         Session.objects.create(
             game=game,
             started_at=timezone.now(),
+            source=Session.SOURCE_XBOX,
         )
 
     else:
-        if active_session:
+        # Only end session if Xbox owns it
+        if active_session and active_session.source == Session.SOURCE_XBOX:
             active_session.end()
 
 

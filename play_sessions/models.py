@@ -9,6 +9,17 @@ class Session(models.Model):
     A single play period for a game.
     Tracks time and links to an optional descriptor and custom field values.
     """
+    SOURCE_MANUAL = 'manual'
+    SOURCE_STEAM = 'steam'
+    SOURCE_XBOX = 'xbox'
+    SOURCE_DISCORD = 'discord'
+
+    SOURCE_CHOICES = [
+        (SOURCE_MANUAL, 'Manual'),
+        (SOURCE_STEAM, 'Steam'),
+        (SOURCE_XBOX, 'Xbox'),
+        (SOURCE_DISCORD, 'Discord'),
+    ]
 
     game = models.ForeignKey(
         Game,
@@ -26,6 +37,12 @@ class Session(models.Model):
     ended_at = models.DateTimeField(null=True, blank=True)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        default=SOURCE_MANUAL,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
