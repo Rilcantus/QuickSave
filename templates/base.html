@@ -191,22 +191,27 @@
     }
   </script>
   <script>
-  // Convert all UTC timestamps to local time
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-utc]').forEach(function(el) {
-      const utc = el.getAttribute('data-utc');
-      if (!utc) return;
-      const date = new Date(utc);
-      el.textContent = date.toLocaleString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        inute: '2-igit',
-        hour12: true
-      });
+  function convertUTCTimes() {
+  document.querySelectorAll('[data-utc]').forEach(function(el) {
+    const utc = el.getAttribute('data-utc');
+    if (!utc) return;
+    const date = new Date(utc);
+    el.textContent = date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
   });
+}
+
+// Run on initial load
+document.addEventListener('DOMContentLoaded', convertUTCTimes);
+
+// Run after every HTMX swap
+document.addEventListener('htmx:afterSwap', convertUTCTimes);
   </script>
 
 </body>
