@@ -222,6 +222,17 @@ def sync_all(request):
                 found.append(f"Discord: {result['name']}")
             poll_discord_for_user(request.user.pk)
 
+        # Check if there's now an active session and redirect to it
+        from play_sessions.models import Session
+        active_session = Session.objects.filter(
+            game__user=request.user,
+            ended_at__isnull=True
+        ).select_related('game').first()
+
+        if active_session:
+            messages.success(request, f"Now playing: {', '.join(found)} — session started!")
+            return redirect('session_active', pk=active_session.pk)
+
         if found:
             messages.success(request, f"Now playing: {', '.join(found)}")
         elif checked:

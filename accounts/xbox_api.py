@@ -214,14 +214,12 @@ def get_currently_playing(xsts_token, uhs):
 
 
 def get_fresh_xsts(user):
-    """
-    Get a fresh XSTS token for a user, refreshing Microsoft token if needed.
-    Returns (xsts_token, uhs) or (None, None).
-    """
     from django.utils import timezone
 
     # Check if access token needs refresh
     if user.xbox_token_expires and timezone.now() >= user.xbox_token_expires:
+        if not user.xbox_refresh_token:
+            return None, None
         tokens = refresh_access_token(user.xbox_refresh_token)
         if not tokens:
             return None, None
