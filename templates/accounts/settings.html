@@ -117,27 +117,35 @@
     </a>
   </div>
 
-  <!-- PSN -->
-  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🎮</span>
-        <div>
-          <p class="text-white font-semibold">PlayStation Network</p>
-          <p class="text-gray-500 text-sm">
-            {% if request.user.psn_username %}
-              Connected as {{ request.user.psn_username }}
+ <!-- PSN -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">PlayStation Network</p>
+        <p class="text-gray-500 text-sm">
+          {% if request.user.psn_username %}
+            Connected as {{ request.user.psn_username }}
+            {% if request.user.psn_polling_enabled %}
+              · <span class="text-brand-400">Auto-tracking on</span>
             {% else %}
-              Not connected
+              · <span class="text-gray-600">Paused</span>
             {% endif %}
-          </p>
-        </div>
+          {% else %}
+            Auto-track your PlayStation sessions
+          {% endif %}
+        </p>
       </div>
-      <a href="{% url 'psn_settings' %}"
-         class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm px-4 py-2 rounded-lg transition">
-        {% if request.user.psn_username %}Manage{% else %}Connect{% endif %}
-      </a>
+      {% if request.user.psn_avatar %}
+        <img src="{{ request.user.psn_avatar }}" alt="PSN"
+             class="w-10 h-10 rounded-full border border-gray-700" />
+      {% else %}
+        <span class="text-3xl">🎮</span>
+      {% endif %}
     </div>
+    <a href="{% url 'psn_settings' %}"
+       class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      {% if request.user.psn_username %}Manage PSN{% else %}Connect PSN{% endif %}
+    </a>
   </div>
 
   <!-- Discord integration -->

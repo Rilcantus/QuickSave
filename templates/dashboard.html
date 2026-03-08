@@ -96,6 +96,7 @@
         <span class="text-gray-300">
           {% if request.user.steam_polling_enabled and request.user.steam_id %}Steam{% endif %}
           {% if request.user.xbox_polling_enabled and request.user.xbox_id %}{% if request.user.steam_polling_enabled and request.user.steam_id %}, {% endif %}Xbox{% endif %}
+          {% if request.user.psn_polling_enabled and request.user.psn_username %}{% if request.user.steam_polling_enabled and request.user.steam_id or request.user.xbox_polling_enabled and request.user.xbox_id %}, {% endif %}PSN{% endif %}
           {% if request.user.discord_polling_enabled and request.user.discord_id %}{% if request.user.steam_polling_enabled and request.user.steam_id or request.user.xbox_polling_enabled and request.user.xbox_id %}, {% endif %}Discord{% endif %}
         </span>
       </p>
