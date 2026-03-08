@@ -1,4 +1,7 @@
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_psn_client():
@@ -13,6 +16,7 @@ def get_psn_profile(psn_username):
     Returns dict with id, username, avatar or None on failure.
     """
     try:
+        from psnawp_api.core.psnawp_exceptions import PSNAWPNotFound, PSNAWPForbidden
         client = get_psn_client()
         user = client.user(online_id=psn_username)
         profile = user.profile()
@@ -21,7 +25,8 @@ def get_psn_profile(psn_username):
             'username': profile.get('onlineId', psn_username),
             'avatar': profile.get('avatars', [{}])[0].get('url', ''),
         }
-    except Exception:
+    except Exception as e:
+        logger.warning("PSN profile lookup failed for %s: %s", psn_username, e)
         return None
 
 
@@ -43,13 +48,9 @@ def get_currently_playing(psn_username):
         if not game_title_info:
             return None
 
-        game = game_title_info[0]
-        name = game.get('titleName', '')
+        name = game_title_info[0].get('titleName', '')
+        return {'name': name} if name else None
 
-        if not name:
-            return None
-
-        return {'name': name}
-
-    except Exception:
+    except Exception as e:
+        logger.warning("PSN presence lookup failed for %s: %s", psn_username, e)
         return None

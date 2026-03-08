@@ -1,9 +1,13 @@
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
+import logging
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+
+logger = logging.getLogger(__name__)
 
 
 def get_oauth_url():
@@ -15,9 +19,7 @@ def get_oauth_url():
         'scope': 'XboxLive.signin XboxLive.offline_access offline_access',
         'response_mode': 'query',
     })
-    url = f"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?{params}"
-    print(f"Xbox OAuth URL: {url}")
-    return url
+    return f"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?{params}"
 
 
 def exchange_code(code):
@@ -36,14 +38,17 @@ def exchange_code(code):
         data=data,
         headers={
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception as e:
-        print(f"Xbox token exchange error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox token exchange failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox token exchange returned invalid JSON: %s", e)
         return None
 
 
@@ -62,14 +67,17 @@ def refresh_access_token(refresh_token):
         data=data,
         headers={
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception as e:
-        print(f"Xbox token refresh error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox token refresh failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox token refresh returned invalid JSON: %s", e)
         return None
 
 
@@ -95,7 +103,7 @@ def get_xsts_token(ms_access_token):
         headers={
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
@@ -103,8 +111,11 @@ def get_xsts_token(ms_access_token):
             user_token_resp = json.loads(response.read().decode())
             user_token = user_token_resp.get('Token')
             uhs = user_token_resp.get('DisplayClaims', {}).get('xui', [{}])[0].get('uhs')
-    except Exception as e:
-        print(f"Xbox user token error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox user token request failed: %s", e)
+        return None, None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox user token returned invalid JSON: %s", e)
         return None, None
 
     if not user_token:
@@ -126,7 +137,7 @@ def get_xsts_token(ms_access_token):
         headers={
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
@@ -134,8 +145,11 @@ def get_xsts_token(ms_access_token):
             xsts_resp = json.loads(response.read().decode())
             xsts_token = xsts_resp.get('Token')
             return xsts_token, uhs
-    except Exception as e:
-        print(f"Xbox XSTS token error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox XSTS token request failed: %s", e)
+        return None, None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox XSTS token returned invalid JSON: %s", e)
         return None, None
 
 
@@ -148,7 +162,7 @@ def get_xbox_profile(xsts_token, uhs):
             'Authorization': auth_header,
             'x-xbl-contract-version': '2',
             'Accept': 'application/json',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
@@ -165,8 +179,11 @@ def get_xbox_profile(xsts_token, uhs):
                 elif s.get('id') == 'GameDisplayPicRaw':
                     avatar = s.get('value', '')
             return {'xuid': xuid, 'gamertag': gamertag, 'avatar': avatar}
-    except Exception as e:
-        print(f"Xbox profile error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox profile request failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox profile returned invalid JSON: %s", e)
         return None
 
 
@@ -176,7 +193,6 @@ def get_currently_playing(xsts_token, uhs):
     Uses the presence endpoint.
     Returns dict with game name or None.
     """
-
     XBOX_IGNORE_TITLES = {'online', 'home', 'dashboard', 'xbox app'}
 
     auth_header = f'XBL3.0 x={uhs};{xsts_token}'
@@ -186,37 +202,33 @@ def get_currently_playing(xsts_token, uhs):
             'Authorization': auth_header,
             'x-xbl-contract-version': '3',
             'Accept': 'application/json',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode())
-            # Check if user is in a game
-            state = data.get('state', '')
-            if state != 'Online':
+            if data.get('state', '') != 'Online':
                 return None
-            devices = data.get('devices', [])
-            for device in devices:
-                    titles = device.get('titles', [])
-                    for title in titles:
-                        name = title.get('name', '')
-                        if title.get('placement') == 'Full' and name.lower() not in XBOX_IGNORE_TITLES:
-                            return {
-                                'name': name,
-                                'title_id': title.get('id', ''),
-                                'device': device.get('type', ''),
-                            }
+            for device in data.get('devices', []):
+                for title in device.get('titles', []):
+                    name = title.get('name', '')
+                    if title.get('placement') == 'Full' and name.lower() not in XBOX_IGNORE_TITLES:
+                        return {
+                            'name': name,
+                            'title_id': title.get('id', ''),
+                            'device': device.get('type', ''),
+                        }
             return None
-    except Exception as e:
-        print(f"Xbox presence error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Xbox presence request failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Xbox presence returned invalid JSON: %s", e)
         return None
 
 
 def get_fresh_xsts(user):
-    from django.utils import timezone
-
-    # Check if access token needs refresh
     if user.xbox_token_expires and timezone.now() >= user.xbox_token_expires:
         if not user.xbox_refresh_token:
             return None, None

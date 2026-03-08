@@ -1,7 +1,11 @@
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def search_games(query):
@@ -32,5 +36,9 @@ def search_games(query):
                     'slug': game.get('slug', ''),
                 })
             return results
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("RAWG API request failed: %s", e)
+        return []
+    except json.JSONDecodeError as e:
+        logger.warning("RAWG API returned invalid JSON: %s", e)
         return []

@@ -1,7 +1,11 @@
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_oauth_url():
@@ -12,9 +16,7 @@ def get_oauth_url():
         'response_type': 'code',
         'scope': 'identify',
     })
-    url = f"https://discord.com/api/oauth2/authorize?{params}"
-    print(f"Discord OAuth URL: {url}")
-    return url
+    return f"https://discord.com/api/oauth2/authorize?{params}"
 
 
 def exchange_code(code):
@@ -32,14 +34,17 @@ def exchange_code(code):
         data=data,
         headers={
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception as e:
-        print(f"Discord token exchange error: {e}")
+    except urllib.error.URLError as e:
+        logger.warning("Discord token exchange failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Discord token exchange returned invalid JSON: %s", e)
         return None
 
 
@@ -57,13 +62,17 @@ def refresh_access_token(refresh_token):
         data=data,
         headers={
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("Discord token refresh failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Discord token refresh returned invalid JSON: %s", e)
         return None
 
 
@@ -73,13 +82,17 @@ def get_current_user(access_token):
         'https://discord.com/api/users/@me',
         headers={
             'Authorization': f'Bearer {access_token}',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("Discord get_current_user failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Discord get_current_user returned invalid JSON: %s", e)
         return None
 
 
@@ -93,13 +106,17 @@ def get_user_activities(access_token):
         'https://discord.com/api/users/@me/activities',
         headers={
             'Authorization': f'Bearer {access_token}',
-            'User-Agent': 'QuickSave/1.0'
+            'User-Agent': 'QuickSave/1.0',
         }
     )
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             return json.loads(response.read().decode())
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("Discord get_user_activities failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Discord get_user_activities returned invalid JSON: %s", e)
         return None
 
 

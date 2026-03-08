@@ -1,7 +1,11 @@
 import urllib.request
 import urllib.parse
+import urllib.error
 import json
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_player_summary(steam_id):
@@ -17,7 +21,11 @@ def get_player_summary(steam_id):
             data = json.loads(response.read().decode())
             players = data.get('response', {}).get('players', [])
             return players[0] if players else None
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("Steam API request failed: %s", e)
+        return None
+    except json.JSONDecodeError as e:
+        logger.warning("Steam API returned invalid JSON: %s", e)
         return None
 
 
@@ -27,7 +35,6 @@ def get_currently_playing(steam_id):
     if not player:
         return None
 
-    # gameid is present when playing a game
     game_id = player.get('gameid')
     game_name = player.get('gameextrainfo')
 
@@ -52,7 +59,11 @@ def get_recently_played(steam_id):
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
             return data.get('response', {}).get('games', [])
-    except Exception:
+    except urllib.error.URLError as e:
+        logger.warning("Steam recently played request failed: %s", e)
+        return []
+    except json.JSONDecodeError as e:
+        logger.warning("Steam recently played returned invalid JSON: %s", e)
         return []
 
 
@@ -70,6 +81,8 @@ def resolve_steam_id(vanity_url):
             result = data.get('response', {})
             if result.get('success') == 1:
                 return result.get('steamid')
-    except Exception:
-        pass
+    except urllib.error.URLError as e:
+        logger.warning("Steam vanity URL resolve failed: %s", e)
+    except json.JSONDecodeError as e:
+        logger.warning("Steam vanity URL returned invalid JSON: %s", e)
     return None
