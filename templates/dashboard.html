@@ -87,17 +87,20 @@
     </div>
   {% endif %}
 
-  {% if request.user.steam_polling_enabled or request.user.xbox_polling_enabled or request.user.discord_polling_enabled %}
+  {% with u=request.user %}
+  {% if u.steam_polling_enabled or u.xbox_polling_enabled or u.discord_polling_enabled or u.psn_polling_enabled %}
   <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-5 py-3 mb-6">
     <div class="flex items-center gap-2">
       <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
       <p class="text-gray-400 text-sm">
         Auto-tracking active ·
         <span class="text-gray-300">
-          {% if request.user.steam_polling_enabled and request.user.steam_id %}Steam{% endif %}
-          {% if request.user.xbox_polling_enabled and request.user.xbox_id %}{% if request.user.steam_polling_enabled and request.user.steam_id %}, {% endif %}Xbox{% endif %}
-          {% if request.user.psn_polling_enabled and request.user.psn_username %}{% if request.user.steam_polling_enabled and request.user.steam_id or request.user.xbox_polling_enabled and request.user.xbox_id %}, {% endif %}PSN{% endif %}
-          {% if request.user.discord_polling_enabled and request.user.discord_id %}{% if request.user.steam_polling_enabled and request.user.steam_id or request.user.xbox_polling_enabled and request.user.xbox_id %}, {% endif %}Discord{% endif %}
+          {% spaceless %}
+          {% if u.steam_polling_enabled and u.steam_id %}Steam{% endif %}
+          {% if u.xbox_polling_enabled and u.xbox_id %}{% if u.steam_polling_enabled and u.steam_id %}, {% endif %}Xbox{% endif %}
+          {% if u.psn_polling_enabled and u.psn_username %}{% if u.steam_polling_enabled and u.steam_id or u.xbox_polling_enabled and u.xbox_id %}, {% endif %}PSN{% endif %}
+          {% if u.discord_polling_enabled and u.discord_id %}{% if u.steam_polling_enabled and u.steam_id or u.xbox_polling_enabled and u.xbox_id or u.psn_polling_enabled and u.psn_username %}, {% endif %}Discord{% endif %}
+          {% endspaceless %}
         </span>
       </p>
     </div>
@@ -111,6 +114,7 @@
     </form>
   </div>
   {% endif %}
+  {% endwith %}
 
   <!-- Main grid -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
@@ -233,25 +237,23 @@
       {% if games %}
         <div class="space-y-2">
           {% for game in games %}
-            <a href="{% url 'game_detail' game.pk %}"
-               class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-brand-500 transition group">
-              <div>
+            <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 hover:border-brand-500 transition group">
+              <a href="{% url 'game_detail' game.pk %}" class="flex-1 min-w-0">
                 <p class="text-white font-medium text-sm group-hover:text-brand-400 transition">
                   {{ game.title }}
                 </p>
                 {% if game.platform %}
                   <p class="text-gray-600 text-xs mt-0.5">{{ game.platform }}</p>
                 {% endif %}
-              </div>
-              <div class="text-right">
-                <p class="text-gray-600 text-xs">{{ game.sessions.count }} sessions</p>
+              </a>
+              <div class="text-right ml-4 shrink-0">
+                <p class="text-gray-600 text-xs">{{ game.session_count }} sessions</p>
                 <a href="{% url 'session_start' game.pk %}"
-                   class="text-xs text-brand-400 hover:underline mt-0.5 inline-block"
-                   onclick="event.stopPropagation()">
+                   class="text-xs text-brand-400 hover:underline mt-0.5 inline-block">
                   ▶ Start
                 </a>
               </div>
-            </a>
+            </div>
           {% endfor %}
         </div>
       {% else %}

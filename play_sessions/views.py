@@ -1,9 +1,46 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count
 from games.models import Game
+from journal.models import JournalEntry
 from .models import Session
 from .forms import SessionStartForm, SessionEndForm
+
+
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'home.html')
+
+
+@login_required
+def dashboard(request):
+    games = Game.objects.filter(user=request.user).annotate(
+        session_count=Count('sessions')
+    )
+    active_sessions = Session.objects.filter(
+        game__user=request.user,
+        ended_at__isnull=True
+    ).select_related('game', 'descriptor')
+
+    recent_sessions = Session.objects.filter(
+        game__user=request.user,
+        ended_at__isnull=False
+    ).select_related('game', 'descriptor').prefetch_related(
+        'custom_field_values__field_definition'
+    ).order_by('-ended_at')[:5]
+
+    recent_entries = JournalEntry.objects.filter(
+        user=request.user
+    ).select_related('session__game', 'game').order_by('-created_at')[:5]
+
+    return render(request, 'dashboard.html', {
+        'games': games,
+        'active_sessions': active_sessions,
+        'recent_sessions': recent_sessions,
+        'recent_entries': recent_entries,
+    })
 
 
 @login_required

@@ -8,6 +8,35 @@ from .models import Game, CustomFieldDefinition, Descriptor
 from .forms import GameForm, CustomFieldDefinitionForm
 
 
+def format_duration(seconds):
+    if not seconds:
+        return '0m'
+    hours, remainder = divmod(int(seconds), 3600)
+    minutes = remainder // 60
+    if hours > 0:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
+
+
+def build_weekly_chart(sessions, num_weeks=8):
+    """Return (labels, counts, hours) lists for the last num_weeks weeks."""
+    from django.db.models import Sum
+    from django.utils import timezone
+    from datetime import timedelta
+
+    now = timezone.now()
+    labels, counts, hours = [], [], []
+    for i in range(num_weeks - 1, -1, -1):
+        week_start = now - timedelta(weeks=i + 1)
+        week_end = now - timedelta(weeks=i)
+        week_qs = sessions.filter(started_at__gte=week_start, started_at__lt=week_end)
+        labels.append((now - timedelta(weeks=i)).strftime('%b %d'))
+        counts.append(week_qs.count())
+        secs = week_qs.aggregate(total=Sum('duration_seconds'))['total'] or 0
+        hours.append(round(secs / 3600, 1))
+    return labels, counts, hours
+
+
 @login_required
 def game_list(request):
     query = request.GET.get('q', '').strip()
@@ -38,7 +67,7 @@ def game_create(request):
 @login_required
 def game_detail(request, pk):
     game = get_object_or_404(Game, pk=pk, user=request.user)
-    sessions = game.sessions.all()[:10]
+    sessions = game.sessions.select_related('descriptor').order_by('-started_at')[:10]
     journal_entries = game.journal_entries.all()[:5]
 
     from django.db.models import Sum
@@ -175,52 +204,22 @@ def rawg_search(request):
 @login_required
 def game_stats(request, pk):
     from django.db.models import Sum, Avg, Max, Count
-    from datetime import timedelta
-    from django.utils import timezone
     import json
 
     game = get_object_or_404(Game, pk=pk, user=request.user)
     sessions = game.sessions.filter(ended_at__isnull=False)
 
-    # Core stats
     total_seconds = sessions.aggregate(total=Sum('duration_seconds'))['total'] or 0
     avg_seconds = sessions.aggregate(avg=Avg('duration_seconds'))['avg'] or 0
     max_seconds = sessions.aggregate(max=Max('duration_seconds'))['max'] or 0
     total_sessions = sessions.count()
     total_entries = game.journal_entries.count()
 
-    def format_duration(seconds):
-        if not seconds:
-            return '0m'
-        hours, remainder = divmod(int(seconds), 3600)
-        minutes = remainder // 60
-        if hours > 0:
-            return f"{hours}h {minutes}m"
-        return f"{minutes}m"
+    weeks, week_counts, week_durations = build_weekly_chart(sessions)
 
-    # Sessions per week (last 8 weeks)
-    weeks = []
-    week_counts = []
-    week_durations = []
-    for i in range(7, -1, -1):
-        week_start = timezone.now() - timedelta(weeks=i+1)
-        week_end = timezone.now() - timedelta(weeks=i)
-        week_sessions = sessions.filter(
-            started_at__gte=week_start,
-            started_at__lt=week_end
-        )
-        label = (timezone.now() - timedelta(weeks=i)).strftime('%b %d')
-        weeks.append(label)
-        week_counts.append(week_sessions.count())
-        week_secs = week_sessions.aggregate(total=Sum('duration_seconds'))['total'] or 0
-        week_durations.append(round(week_secs / 3600, 1))
-
-    # Top run labels
     top_descriptors = sessions.filter(
         descriptor__isnull=False
-    ).values(
-        'descriptor__name'
-    ).annotate(
+    ).values('descriptor__name').annotate(
         count=Count('id'),
         total_time=Sum('duration_seconds')
     ).order_by('-count')[:5]
@@ -241,9 +240,7 @@ def game_stats(request, pk):
 
 @login_required
 def overall_stats(request):
-    from django.db.models import Sum, Avg, Max, Count
-    from datetime import timedelta
-    from django.utils import timezone
+    from django.db.models import Sum
     import json
 
     games = request.user.games.all()
@@ -252,49 +249,16 @@ def overall_stats(request):
         ended_at__isnull=False
     )
 
-    # Core stats
     total_seconds = sessions.aggregate(total=Sum('duration_seconds'))['total'] or 0
     total_sessions = sessions.count()
     total_entries = request.user.journal_entries.count()
     total_games = games.count()
 
-    def format_duration(seconds):
-        if not seconds:
-            return '0m'
-        hours, remainder = divmod(int(seconds), 3600)
-        minutes = remainder // 60
-        if hours > 0:
-            return f"{hours}h {minutes}m"
-        return f"{minutes}m"
+    weeks, week_counts, week_durations = build_weekly_chart(sessions)
 
-    # Sessions per week (last 8 weeks)
-    weeks = []
-    week_counts = []
-    week_durations = []
-    for i in range(7, -1, -1):
-        week_start = timezone.now() - timedelta(weeks=i+1)
-        week_end = timezone.now() - timedelta(weeks=i)
-        week_sessions = sessions.filter(
-            started_at__gte=week_start,
-            started_at__lt=week_end
-        )
-        label = (timezone.now() - timedelta(weeks=i)).strftime('%b %d')
-        weeks.append(label)
-        week_counts.append(week_sessions.count())
-        week_secs = week_sessions.aggregate(total=Sum('duration_seconds'))['total'] or 0
-        week_durations.append(round(week_secs / 3600, 1))
-
-    # Time per game
     time_per_game = games.annotate(
         total_time=Sum('sessions__duration_seconds')
-    ).filter(
-        total_time__isnull=False
-    ).order_by('-total_time')[:6]
-
-    game_names = json.dumps([g.title for g in time_per_game])
-    game_times = json.dumps([
-        round((g.total_time or 0) / 3600, 1) for g in time_per_game
-    ])
+    ).filter(total_time__isnull=False).order_by('-total_time')[:6]
 
     return render(request, 'games/overall_stats.html', {
         'total_playtime': format_duration(total_seconds),
@@ -304,7 +268,7 @@ def overall_stats(request):
         'weeks_json': json.dumps(weeks),
         'week_counts_json': json.dumps(week_counts),
         'week_durations_json': json.dumps(week_durations),
-        'game_names_json': game_names,
-        'game_times_json': game_times,
+        'game_names_json': json.dumps([g.title for g in time_per_game]),
+        'game_times_json': json.dumps([round((g.total_time or 0) / 3600, 1) for g in time_per_game]),
         'time_per_game': time_per_game,
     })

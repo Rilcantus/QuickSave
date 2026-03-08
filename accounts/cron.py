@@ -1,48 +1,34 @@
-def setup_steam_polling_schedule():
-    """Set up recurring Steam polling every 5 minutes."""
-    from django_q.models import Schedule
-    Schedule.objects.get_or_create(
-        name='Steam Polling',
-        defaults={
-            'func': 'accounts.tasks.schedule_steam_polling',
-            'schedule_type': Schedule.MINUTES,
-            'minutes': 5,
-        }
-    )
+_SCHEDULES = [
+    ('Steam Polling',   'accounts.tasks.schedule_steam_polling'),
+    ('Discord Polling', 'accounts.tasks.schedule_discord_polling'),
+    ('Xbox Polling',    'accounts.tasks.schedule_xbox_polling'),
+    ('PSN Polling',     'accounts.tasks.schedule_psn_polling'),
+]
 
+
+def setup_all_polling_schedules():
+    """Set up all platform polling schedules at 5-minute intervals."""
+    from django_q.models import Schedule
+    for name, func in _SCHEDULES:
+        Schedule.objects.get_or_create(
+            name=name,
+            defaults={
+                'func': func,
+                'schedule_type': Schedule.MINUTES,
+                'minutes': 5,
+            }
+        )
+
+
+# Individual entry points kept for backwards compatibility
+def setup_steam_polling_schedule():
+    setup_all_polling_schedules()
 
 def setup_discord_polling_schedule():
-    """Set up recurring Discord polling every 5 minutes."""
-    from django_q.models import Schedule
-    Schedule.objects.get_or_create(
-        name='Discord Polling',
-        defaults={
-            'func': 'accounts.tasks.schedule_discord_polling',
-            'schedule_type': Schedule.MINUTES,
-            'minutes': 5,
-        }
-    )
+    setup_all_polling_schedules()
 
 def setup_xbox_polling_schedule():
-    """Set up recurring Xbox polling every 5 minutes."""
-    from django_q.models import Schedule
-    Schedule.objects.get_or_create(
-        name='Xbox Polling',
-        defaults={
-            'func': 'accounts.tasks.schedule_xbox_polling',
-            'schedule_type': Schedule.MINUTES,
-            'minutes': 5,
-        }
-    )
+    setup_all_polling_schedules()
 
 def setup_psn_polling_schedule():
-    """Set up recurring PSN polling every 5 minutes."""
-    from django_q.models import Schedule
-    Schedule.objects.get_or_create(
-        name='PSN Polling',
-        defaults={
-            'func': 'accounts.tasks.schedule_psn_polling',
-            'schedule_type': Schedule.MINUTES,
-            'minutes': 5,
-        }
-    )
+    setup_all_polling_schedules()
