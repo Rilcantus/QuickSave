@@ -400,65 +400,49 @@ def sync_all(request):
     if request.method != 'POST':
         return redirect('dashboard')
 
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     from play_sessions.models import Session
+    from .tasks import (
+        poll_steam_for_user, poll_xbox_for_user,
+        poll_psn_for_user, poll_discord_for_user,
+    )
 
-    def get_active():
-        return Session.objects.filter(
-            game__user=request.user, ended_at__isnull=True
-        ).select_related('game').first()
-
-    # Already in a session
-    active = get_active()
+    active = Session.objects.filter(
+        game__user=request.user, ended_at__isnull=True
+    ).select_related('game').first()
     if active:
         messages.info(request, f"Already tracking: {active.game.title}")
         return redirect('session_active', pk=active.pk)
 
-    checked = []
+    u = request.user
+    polls = {}
+    if u.steam_id and u.steam_polling_enabled:
+        polls['Steam'] = poll_steam_for_user
+    if u.xbox_id and u.xbox_polling_enabled:
+        polls['Xbox'] = poll_xbox_for_user
+    if u.psn_username and u.psn_polling_enabled:
+        polls['PSN'] = poll_psn_for_user
+    if u.discord_id and u.discord_polling_enabled:
+        polls['Discord'] = poll_discord_for_user
 
-    # Steam
-    if request.user.steam_id and request.user.steam_polling_enabled:
-        from .tasks import poll_steam_for_user
-        checked.append('Steam')
-        poll_steam_for_user(request.user.pk)
-        active = get_active()
-        if active:
-            messages.success(request, f"Session started: {active.game.title}!")
-            return redirect('session_active', pk=active.pk)
-
-    # Xbox
-    if request.user.xbox_id and request.user.xbox_polling_enabled:
-        from .tasks import poll_xbox_for_user
-        checked.append('Xbox')
-        poll_xbox_for_user(request.user.pk)
-        active = get_active()
-        if active:
-            messages.success(request, f"Session started: {active.game.title}!")
-            return redirect('session_active', pk=active.pk)
-
-    # PSN
-    if request.user.psn_username and request.user.psn_polling_enabled:
-        from .tasks import poll_psn_for_user
-        checked.append('PSN')
-        poll_psn_for_user(request.user.pk)
-        active = get_active()
-        if active:
-            messages.success(request, f"Session started: {active.game.title}!")
-            return redirect('session_active', pk=active.pk)
-
-    # Discord
-    if request.user.discord_id and request.user.discord_polling_enabled:
-        from .tasks import poll_discord_for_user
-        checked.append('Discord')
-        poll_discord_for_user(request.user.pk)
-        active = get_active()
-        if active:
-            messages.success(request, f"Session started: {active.game.title}!")
-            return redirect('session_active', pk=active.pk)
-
-    if checked:
-        messages.info(request, f"Checked {', '.join(checked)} — not playing anything right now.")
-    else:
+    if not polls:
         messages.info(request, "No platforms connected with auto-tracking enabled.")
+        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
+        return redirect(next_url)
 
+    with ThreadPoolExecutor(max_workers=len(polls)) as executor:
+        futures = {executor.submit(fn, u.pk): name for name, fn in polls.items()}
+        for future in as_completed(futures):
+            future.result()  # surface any exceptions
+
+    active = Session.objects.filter(
+        game__user=request.user, ended_at__isnull=True
+    ).select_related('game').first()
+
+    if active:
+        messages.success(request, f"Session started: {active.game.title}!")
+        return redirect('session_active', pk=active.pk)
+
+    messages.info(request, f"Checked {', '.join(polls)} — not playing anything right now.")
     next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
     return redirect(next_url)
