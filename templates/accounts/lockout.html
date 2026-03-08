@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Account Locked — QuickSave{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+  <div class="text-center max-w-md">
+    <p class="text-5xl mb-4">🔒</p>
+    <h1 class="text-2xl font-bold text-white mb-2">Account Temporarily Locked</h1>
+    <p class="text-gray-400 mb-6">
+      Too many failed login attempts. Your account has been locked for <span class="text-white font-medium">1 hour</span>.
+    </p>
+    <p class="text-gray-500 text-sm">
+      If this wasn't you, your account may be under attack. After the lockout expires, log in and change your password immediately.
+    </p>
+    <a href="{% url 'login' %}" class="inline-block mt-8 text-brand-400 hover:underline text-sm">
+      Back to login
+    </a>
+  </div>
+</div>
+{% endblock %}

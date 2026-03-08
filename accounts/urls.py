@@ -31,4 +31,5 @@ urlpatterns = [
     path('settings/psn/toggle/', views.psn_toggle_polling, name='psn_toggle_polling'),
     path('settings/psn/poll/', views.psn_poll_now, name='psn_poll_now'),
     path('sync-all/', views.sync_all, name='sync_all'),
+    path('settings/export/', views.export_data, name='export_data'),
 ]

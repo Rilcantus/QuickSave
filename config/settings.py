@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'play_sessions',
     'journal',
     'django_q',
+    'axes',
 ]
 
 MIDDLEWARE = [
@@ -59,7 +60,20 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# django-axes: rate limiting + account lockout
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # unlock after 1 hour
+AXES_LOCKOUT_TEMPLATE = 'accounts/lockout.html'
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 
 ROOT_URLCONF = 'config.urls'
 
@@ -163,16 +177,24 @@ Q_CLUSTER = {
 
 # Production settings
 if not DEBUG:
-    ALLOWED_HOSTS = ['*']
-    
+    ALLOWED_HOSTS = ['quicksave.site', 'www.quicksave.site', 'web-production-4fa9f.up.railway.app']
+
     # Whitenoise for static files
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    
+
     # Database from environment
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
         ssl_require=True,
     )
+
+    # Security headers
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-4fa9f.up.railway.app',

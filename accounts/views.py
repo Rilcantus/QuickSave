@@ -446,3 +446,65 @@ def sync_all(request):
     messages.info(request, f"Checked {', '.join(polls)} — not playing anything right now.")
     next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
     return redirect(next_url)
+
+
+# ─── DATA EXPORT ──────────────────────────────────────────────────────────────
+
+@login_required
+def export_data(request):
+    import json
+    from django.http import HttpResponse
+    from games.models import Game
+    from play_sessions.models import Session
+    from journal.models import JournalEntry
+
+    user = request.user
+
+    games = []
+    for game in Game.objects.filter(user=user).prefetch_related('sessions', 'journal_entries'):
+        games.append({
+            'title': game.title,
+            'platform': game.platform or '',
+            'added': game.created_at.isoformat() if hasattr(game, 'created_at') else '',
+        })
+
+    sessions = []
+    for s in Session.objects.filter(game__user=user).select_related('game', 'descriptor').order_by('-started_at'):
+        sessions.append({
+            'game': s.game.title,
+            'descriptor': s.descriptor.name if s.descriptor else '',
+            'started_at': s.started_at.isoformat(),
+            'ended_at': s.ended_at.isoformat() if s.ended_at else None,
+            'duration_seconds': s.duration_seconds,
+            'notes': s.notes or '',
+            'source': s.source,
+        })
+
+    entries = []
+    for e in JournalEntry.objects.filter(user=user).select_related('session__game', 'game').order_by('-created_at'):
+        game = e.get_game()
+        entries.append({
+            'game': game.title if game else '',
+            'created_at': e.created_at.isoformat(),
+            'body': e.body or '',
+            'accomplishments': e.accomplishments or '',
+            'blockers': e.blockers or '',
+            'next_goals': e.next_goals or '',
+            'mood': e.mood or '',
+        })
+
+    payload = {
+        'exported_at': __import__('datetime').datetime.utcnow().isoformat() + 'Z',
+        'username': user.username,
+        'email': user.email,
+        'games': games,
+        'sessions': sessions,
+        'journal_entries': entries,
+    }
+
+    response = HttpResponse(
+        json.dumps(payload, indent=2),
+        content_type='application/json',
+    )
+    response['Content-Disposition'] = f'attachment; filename="quicksave-export-{user.username}.json"'
+    return response

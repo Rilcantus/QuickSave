@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import FileResponse
+from django.views.generic import TemplateView
 from accounts import views as account_views
 import os
 
@@ -20,4 +21,9 @@ urlpatterns = [
     path('games/', include('games.urls')),
     path('journal/', include('journal.urls')),
     path('', include('play_sessions.urls')),
+
+    # Legal pages
+    path('legal/privacy/', TemplateView.as_view(template_name='legal/privacy.html'), name='privacy_policy'),
+    path('legal/terms/', TemplateView.as_view(template_name='legal/terms.html'), name='terms_of_service'),
+    path('legal/dmca/', TemplateView.as_view(template_name='legal/dmca.html'), name='dmca_policy'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
