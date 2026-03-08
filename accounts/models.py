@@ -26,5 +26,12 @@ class User(AbstractUser):
     xbox_token_expires = models.DateTimeField(null=True, blank=True)
     xbox_polling_enabled = models.BooleanField(default=False)
 
+    # PSN integration
+    psn_username = models.CharField(max_length=100, blank=True)
+    psn_account_id = models.CharField(max_length=50, blank=True)
+    psn_avatar = models.URLField(blank=True)
+    psn_polling_enabled = models.BooleanField(default=False)
+
+
     def __str__(self):
         return self.username

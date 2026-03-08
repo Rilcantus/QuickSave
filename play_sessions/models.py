@@ -13,12 +13,14 @@ class Session(models.Model):
     SOURCE_STEAM = 'steam'
     SOURCE_XBOX = 'xbox'
     SOURCE_DISCORD = 'discord'
+    SOURCE_PSN = 'psn'
 
     SOURCE_CHOICES = [
         (SOURCE_MANUAL, 'Manual'),
         (SOURCE_STEAM, 'Steam'),
         (SOURCE_XBOX, 'Xbox'),
         (SOURCE_DISCORD, 'Discord'),
+        (SOURCE_PSN, 'PSN'),
     ]
 
     game = models.ForeignKey(

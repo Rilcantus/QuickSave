@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}PSN Settings — QuickSave{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto mt-6">
+
+  <p class="text-gray-500 text-sm mb-6">
+    <a href="{% url 'account_settings' %}" class="hover:text-brand-400 transition">Account Settings</a>
+    <span class="mx-2">›</span> PlayStation Network
+  </p>
+
+  <h1 class="text-2xl font-bold text-white mb-8">PlayStation Network</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded-lg text-sm
+        {% if message.tags == 'error' %}bg-red-900 text-red-300
+        {% else %}bg-brand-500 bg-opacity-20 text-brand-400{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if user.psn_username %}
+    <!-- Connected state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+      <div class="flex items-center gap-4 mb-6">
+        {% if user.psn_avatar %}
+          <img src="{{ user.psn_avatar }}" class="w-14 h-14 rounded-full border border-gray-700" />
+        {% else %}
+          <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl">🎮</div>
+        {% endif %}
+        <div>
+          <p class="text-white font-semibold text-lg">{{ user.psn_username }}</p>
+          <p class="text-gray-500 text-sm">PlayStation Network</p>
+        </div>
+      </div>
+
+      <!-- Auto-tracking toggle -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Auto-tracking</p>
+          <p class="text-gray-500 text-sm mt-0.5">Automatically track PS4/PS5 sessions</p>
+          <p class="text-gray-600 text-xs mt-1">Requires your PSN profile to be set to public</p>
+        </div>
+        <form method="POST" action="{% url 'psn_toggle_polling' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition
+              {% if user.psn_polling_enabled %}bg-brand-500{% else %}bg-gray-700{% endif %}">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition
+              {% if user.psn_polling_enabled %}translate-x-6{% else %}translate-x-1{% endif %}">
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Poll now -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Check Now</p>
+          <p class="text-gray-500 text-sm mt-0.5">Manually check what you're playing</p>
+        </div>
+        <form method="POST" action="{% url 'psn_poll_now' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="bg-gray-800 hover:bg-brand-500 hover:text-white text-gray-300 text-sm px-4 py-2 rounded-lg transition">
+            Check Now
+          </button>
+        </form>
+      </div>
+
+      <!-- Disconnect -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Disconnect</p>
+          <p class="text-gray-500 text-sm mt-0.5">Remove your PSN username from QuickSave</p>
+        </div>
+        <form method="POST" action="{% url 'psn_disconnect' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="bg-red-900 hover:bg-red-800 text-red-300 text-sm px-4 py-2 rounded-lg transition">
+            Disconnect
+          </button>
+        </form>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- Connect state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+      <p class="text-4xl mb-4 text-center">🎮</p>
+      <h2 class="text-white font-semibold text-center mb-2">Connect PlayStation Network</h2>
+      <p class="text-gray-500 text-sm text-center mb-6">
+        Enter your PSN username to enable auto-tracking for PS4 and PS5 games.
+        Your profile must be set to <span class="text-white">public</span> in PSN settings.
+      </p>
+
+      <form method="POST" action="{% url 'psn_connect' %}">
+        {% csrf_token %}
+        <label class="block text-sm font-medium text-gray-300 mb-2">PSN Username</label>
+        <input
+          type="text"
+          name="psn_username"
+          placeholder="YourPSNUsername"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition mb-4"
+          required
+        />
+        <button type="submit"
+          class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition">
+          Connect PSN
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

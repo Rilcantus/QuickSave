@@ -138,6 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 RAWG_API_KEY = env('RAWG_API_KEY', default='')
 
 STEAM_API_KEY = env('STEAM_API_KEY', default='')
+PSN_NPSSO_TOKEN = env('PSN_NPSSO_TOKEN', default='')
 
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID', default='')
 DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET', default='')

@@ -6,42 +6,55 @@ from django.contrib import messages
 from .forms import RegisterForm, LoginForm, UpdateProfileForm
 
 
+# ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+def _disconnect_platform(user, fields):
+    """Clear a set of fields on the user model."""
+    for field, value in fields.items():
+        setattr(user, field, value)
+    user.save()
+
+
+def _toggle_polling(user, field):
+    """Toggle a boolean polling field and return new status string."""
+    current = getattr(user, field)
+    setattr(user, field, not current)
+    user.save()
+    return "enabled" if not current else "paused"
+
+
+# ─── PUBLIC VIEWS ─────────────────────────────────────────────────────────────
+
 def landing(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return render(request, 'landing.html')
 
+
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
-
     form = RegisterForm(request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, f"Welcome to QuickSave, {user.username}!")
-            return redirect('home')
-        else:
-            messages.error(request, "Please fix the errors below.")
-
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        login(request, user)
+        messages.success(request, f"Welcome to QuickSave, {user.username}!")
+        return redirect('home')
+    elif request.method == 'POST':
+        messages.error(request, "Please fix the errors below.")
     return render(request, 'accounts/register.html', {'form': form})
 
 
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
-
     form = LoginForm(request, data=request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
-            return redirect('home')
-        else:
-            messages.error(request, "Invalid username or password.")
-
+    if request.method == 'POST' and form.is_valid():
+        login(request, form.get_user())
+        messages.success(request, f"Welcome back, {form.get_user().username}!")
+        return redirect('home')
+    elif request.method == 'POST':
+        messages.error(request, "Invalid username or password.")
     return render(request, 'accounts/login.html', {'form': form})
 
 
@@ -50,6 +63,8 @@ def logout_view(request):
     return redirect('login')
 
 
+# ─── ACCOUNT SETTINGS ─────────────────────────────────────────────────────────
+
 @login_required
 def account_settings(request):
     return render(request, 'accounts/settings.html')
@@ -57,34 +72,25 @@ def account_settings(request):
 
 @login_required
 def update_profile(request):
-    if request.method == 'POST':
-        form = UpdateProfileForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profile updated!")
-            return redirect('account_settings')
-        else:
-            messages.error(request, "Please fix the errors below.")
-    else:
-        form = UpdateProfileForm(instance=request.user)
-
+    form = UpdateProfileForm(request.POST or None, instance=request.user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Profile updated!")
+        return redirect('account_settings')
+    elif request.method == 'POST':
+        messages.error(request, "Please fix the errors below.")
     return render(request, 'accounts/update_profile.html', {'form': form})
 
 
 @login_required
 def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Password changed successfully!")
-            return redirect('account_settings')
-        else:
-            messages.error(request, "Please fix the errors below.")
-    else:
-        form = PasswordChangeForm(request.user)
-
+    form = PasswordChangeForm(request.user, request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        update_session_auth_hash(request, form.save())
+        messages.success(request, "Password changed successfully!")
+        return redirect('account_settings')
+    elif request.method == 'POST':
+        messages.error(request, "Please fix the errors below.")
     return render(request, 'accounts/change_password.html', {'form': form})
 
 
@@ -96,31 +102,32 @@ def delete_account(request):
         user.delete()
         messages.success(request, "Your account has been deleted.")
         return redirect('home')
-
     return render(request, 'accounts/delete_account.html')
+
+
+# ─── STEAM ────────────────────────────────────────────────────────────────────
+
+@login_required
+def steam_settings(request):
+    from .steam import get_recently_played
+    recently_played = get_recently_played(request.user.steam_id)[:5] if request.user.steam_id else []
+    return render(request, 'accounts/steam_settings.html', {'recently_played': recently_played})
+
 
 @login_required
 def steam_connect(request):
     if request.method == 'POST':
         from .steam import get_player_summary, resolve_steam_id
         steam_input = request.POST.get('steam_id', '').strip()
-
         if not steam_input:
             messages.error(request, "Please enter a Steam ID or username.")
             return redirect('account_settings')
 
-        # Try as vanity URL first, then as direct Steam ID
-        steam_id = None
-        if steam_input.isdigit() and len(steam_input) == 17:
-            steam_id = steam_input
-        else:
-            steam_id = resolve_steam_id(steam_input)
-
+        steam_id = steam_input if (steam_input.isdigit() and len(steam_input) == 17) else resolve_steam_id(steam_input)
         if not steam_id:
             messages.error(request, "Couldn't find that Steam account. Try your 17-digit Steam ID instead.")
             return redirect('steam_settings')
 
-        # Verify the account exists and get profile info
         player = get_player_summary(steam_id)
         if not player:
             messages.error(request, "Couldn't connect to Steam. Check your ID and try again.")
@@ -132,209 +139,42 @@ def steam_connect(request):
         request.user.steam_polling_enabled = True
         request.user.save()
 
-        # Set up polling schedule
         from .cron import setup_steam_polling_schedule
         setup_steam_polling_schedule()
-
         messages.success(request, f"Connected to Steam as {request.user.steam_username}!")
-        return redirect('steam_settings')
-
     return redirect('steam_settings')
 
 
 @login_required
 def steam_disconnect(request):
     if request.method == 'POST':
-        request.user.steam_id = ''
-        request.user.steam_username = ''
-        request.user.steam_avatar = ''
-        request.user.steam_polling_enabled = False
-        request.user.save()
+        _disconnect_platform(request.user, {
+            'steam_id': '', 'steam_username': '',
+            'steam_avatar': '', 'steam_polling_enabled': False,
+        })
         messages.success(request, "Steam account disconnected.")
     return redirect('account_settings')
 
 
 @login_required
-def steam_settings(request):
-    from .steam import get_recently_played
-    recently_played = []
-    if request.user.steam_id:
-        recently_played = get_recently_played(request.user.steam_id)[:5]
-
-    return render(request, 'accounts/steam_settings.html', {
-        'recently_played': recently_played,
-    })
-
-
-@login_required  
 def steam_toggle_polling(request):
     if request.method == 'POST':
-        request.user.steam_polling_enabled = not request.user.steam_polling_enabled
-        request.user.save()
-        status = "enabled" if request.user.steam_polling_enabled else "paused"
+        status = _toggle_polling(request.user, 'steam_polling_enabled')
         messages.success(request, f"Steam auto-tracking {status}.")
     return redirect('steam_settings')
 
+
 @login_required
 def steam_poll_now(request):
-    if request.method == 'POST':
-        if request.user.steam_id:
-            from .tasks import poll_steam_for_user
-            poll_steam_for_user(request.user.pk)
-            messages.success(request, "Steam status checked!")
-        # Redirect back to wherever the user came from
-        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
-        return redirect(next_url)
-    return redirect('dashboard')
-
-@login_required
-def sync_all(request):
-    if request.method == 'POST':
-        from play_sessions.models import Session
-
-        # If already in an active session, just go there
-        active_session = Session.objects.filter(
-            game__user=request.user,
-            ended_at__isnull=True
-        ).select_related('game').first()
-
-        if active_session:
-            messages.info(request, f"Already tracking: {active_session.game.title}")
-            return redirect('session_active', pk=active_session.pk)
-
-        # No active session — poll all platforms
-        found = []
-        checked = []
-
-        if request.user.steam_id and request.user.steam_polling_enabled:
-            from .tasks import poll_steam_for_user
-            from .steam import get_currently_playing as steam_playing
-            checked.append('Steam')
-            result = steam_playing(request.user.steam_id)
-            if result:
-                found.append(f"Steam: {result['name']}")
-            poll_steam_for_user(request.user.pk)
-
-        # Check after Steam before continuing
-        active_session = Session.objects.filter(
-            game__user=request.user, ended_at__isnull=True
-        ).first()
-        if active_session:
-            messages.success(request, f"Session started: {active_session.game.title}!")
-            return redirect('session_active', pk=active_session.pk)
-
-        if request.user.xbox_id and request.user.xbox_polling_enabled:
-            from .tasks import poll_xbox_for_user
-            from .xbox_api import get_fresh_xsts, get_currently_playing as xbox_playing
-            checked.append('Xbox')
-            xsts_token, uhs = get_fresh_xsts(request.user)
-            if xsts_token:
-                result = xbox_playing(xsts_token, uhs)
-                if result:
-                    found.append(f"Xbox: {result['name']}")
-            poll_xbox_for_user(request.user.pk)
-
-        # Check after Xbox before continuing
-        active_session = Session.objects.filter(
-            game__user=request.user, ended_at__isnull=True
-        ).first()
-        if active_session:
-            messages.success(request, f"Session started: {active_session.game.title}!")
-            return redirect('session_active', pk=active_session.pk)
-
-        if request.user.discord_id and request.user.discord_polling_enabled:
-            from .tasks import poll_discord_for_user
-            from .discord_api import get_currently_playing as discord_playing
-            checked.append('Discord')
-            result = discord_playing(request.user.discord_access_token)
-            if result:
-                found.append(f"Discord: {result['name']}")
-            poll_discord_for_user(request.user.pk)
-
-        # Check again for active session after polling
-        active_session = Session.objects.filter(
-            game__user=request.user,
-            ended_at__isnull=True
-        ).select_related('game').first()
-
-        if active_session:
-            messages.success(request, f"Session started: {active_session.game.title}!")
-            return redirect('session_active', pk=active_session.pk)
-
-        if checked:
-            messages.info(request, f"Checked {', '.join(checked)} — not playing anything right now.")
-        else:
-            messages.info(request, "No platforms connected with auto-tracking enabled.")
-
-        next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
-        return redirect(next_url)
-    return redirect('dashboard')
-
-@login_required
-def discord_oauth(request):
-    """Redirect to Discord OAuth."""
-    from .discord_api import get_oauth_url
-    from django.http import HttpResponseRedirect
-    url = get_oauth_url()
-    return HttpResponseRedirect(url)
+    if request.method == 'POST' and request.user.steam_id:
+        from .tasks import poll_steam_for_user
+        poll_steam_for_user(request.user.pk)
+        messages.success(request, "Steam status checked!")
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
+    return redirect(next_url)
 
 
-def discord_callback(request):
-    """Handle Discord OAuth callback."""
-    from .discord_api import exchange_code, get_current_user
-    from .cron import setup_discord_polling_schedule
-
-    code = request.GET.get('code')
-    error = request.GET.get('error')
-    error_description = request.GET.get('error_description', '')
-
-    if error or not code:
-        messages.error(request, f"Discord error: {error} — {error_description}")
-        return redirect('account_settings')
-
-    # Exchange code for tokens
-    tokens = exchange_code(code)
-    if not tokens or 'access_token' not in tokens:
-        messages.error(request, "Failed to connect Discord. Please try again.")
-        return redirect('account_settings')
-
-    # Get user profile
-    user_data = get_current_user(tokens['access_token'])
-    if not user_data:
-        messages.error(request, "Failed to get Discord profile.")
-        return redirect('account_settings')
-
-    # Save to user
-    request.user.discord_id = user_data.get('id', '')
-    request.user.discord_username = user_data.get('username', '')
-    avatar_hash = user_data.get('avatar', '')
-    if avatar_hash:
-        request.user.discord_avatar = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{avatar_hash}.png"
-    request.user.discord_access_token = tokens['access_token']
-    request.user.discord_refresh_token = tokens.get('refresh_token', '')
-    request.user.discord_polling_enabled = True
-    request.user.save()
-
-    # Set up polling
-    setup_discord_polling_schedule()
-
-    messages.success(request, f"Connected to Discord as {request.user.discord_username}!")
-    return redirect('discord_settings')
-
-
-@login_required
-def discord_disconnect(request):
-    if request.method == 'POST':
-        request.user.discord_id = ''
-        request.user.discord_username = ''
-        request.user.discord_avatar = ''
-        request.user.discord_access_token = ''
-        request.user.discord_refresh_token = ''
-        request.user.discord_polling_enabled = False
-        request.user.save()
-        messages.success(request, "Discord account disconnected.")
-    return redirect('account_settings')
-
+# ─── DISCORD ──────────────────────────────────────────────────────────────────
 
 @login_required
 def discord_settings(request):
@@ -342,92 +182,67 @@ def discord_settings(request):
 
 
 @login_required
-def discord_toggle_polling(request):
-    if request.method == 'POST':
-        request.user.discord_polling_enabled = not request.user.discord_polling_enabled
-        request.user.save()
-        status = "enabled" if request.user.discord_polling_enabled else "paused"
-        messages.success(request, f"Discord auto-tracking {status}.")
-    return redirect('discord_settings')
-
-# ─── XBOX VIEWS ───────────────────────────────────────────────────────────────
-# Add these to accounts/views.py
-
-@login_required
-def xbox_connect(request):
-    """Redirect to Microsoft OAuth."""
-    from .xbox_api import get_oauth_url
+def discord_oauth(request):
+    from .discord_api import get_oauth_url
     from django.http import HttpResponseRedirect
-    url = get_oauth_url()
-    return HttpResponseRedirect(url)
+    return HttpResponseRedirect(get_oauth_url())
 
 
-def xbox_callback(request):
-    """Handle Microsoft OAuth callback."""
-    from .xbox_api import exchange_code, get_xsts_token, get_xbox_profile
-    from django.utils import timezone
-    from datetime import timedelta
+def discord_callback(request):
+    from .discord_api import exchange_code, get_current_user
+    from .cron import setup_discord_polling_schedule
 
     code = request.GET.get('code')
     error = request.GET.get('error')
-    error_description = request.GET.get('error_description', '')
-
     if error or not code:
-        messages.error(request, f"Xbox error: {error} — {error_description}")
+        messages.error(request, f"Discord error: {error} — {request.GET.get('error_description', '')}")
         return redirect('account_settings')
 
-    # Exchange code for Microsoft tokens
     tokens = exchange_code(code)
     if not tokens or 'access_token' not in tokens:
-        messages.error(request, "Failed to connect Xbox. Please try again.")
+        messages.error(request, "Failed to connect Discord. Please try again.")
         return redirect('account_settings')
 
-    # Get XSTS token for Xbox Live API calls
-    xsts_token, uhs = get_xsts_token(tokens['access_token'])
-    if not xsts_token:
-        messages.error(request, "Failed to authenticate with Xbox Live.")
+    user_data = get_current_user(tokens['access_token'])
+    if not user_data:
+        messages.error(request, "Failed to get Discord profile.")
         return redirect('account_settings')
 
-    # Get Xbox profile
-    profile = get_xbox_profile(xsts_token, uhs)
-    if not profile:
-        messages.error(request, "Failed to get Xbox profile.")
-        return redirect('account_settings')
-
-    # Save to user
-    expires_in = tokens.get('expires_in', 3600)
-    request.user.xbox_id = profile.get('xuid', '')
-    request.user.xbox_gamertag = profile.get('gamertag', '')
-    request.user.xbox_avatar = profile.get('avatar', '')
-    request.user.xbox_access_token = tokens['access_token']
-    request.user.xbox_refresh_token = tokens.get('refresh_token', '')
-    request.user.xbox_token_expires = timezone.now() + timedelta(seconds=expires_in)
-    request.user.xbox_polling_enabled = True
+    avatar_hash = user_data.get('avatar', '')
+    request.user.discord_id = user_data.get('id', '')
+    request.user.discord_username = user_data.get('username', '')
+    request.user.discord_avatar = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{avatar_hash}.png" if avatar_hash else ''
+    request.user.discord_access_token = tokens['access_token']
+    request.user.discord_refresh_token = tokens.get('refresh_token', '')
+    request.user.discord_polling_enabled = True
     request.user.save()
 
-    messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
-    
-    from .cron import setup_xbox_polling_schedule
-    setup_xbox_polling_schedule()
-
-    messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
-    return redirect('xbox_settings')
+    setup_discord_polling_schedule()
+    messages.success(request, f"Connected to Discord as {request.user.discord_username}!")
+    return redirect('discord_settings')
 
 
 @login_required
-def xbox_disconnect(request):
+def discord_disconnect(request):
     if request.method == 'POST':
-        request.user.xbox_id = ''
-        request.user.xbox_gamertag = ''
-        request.user.xbox_avatar = ''
-        request.user.xbox_access_token = ''
-        request.user.xbox_refresh_token = ''
-        request.user.xbox_token_expires = None
-        request.user.xbox_polling_enabled = False
-        request.user.save()
-        messages.success(request, "Xbox account disconnected.")
+        _disconnect_platform(request.user, {
+            'discord_id': '', 'discord_username': '', 'discord_avatar': '',
+            'discord_access_token': '', 'discord_refresh_token': '',
+            'discord_polling_enabled': False,
+        })
+        messages.success(request, "Discord account disconnected.")
     return redirect('account_settings')
 
+
+@login_required
+def discord_toggle_polling(request):
+    if request.method == 'POST':
+        status = _toggle_polling(request.user, 'discord_polling_enabled')
+        messages.success(request, f"Discord auto-tracking {status}.")
+    return redirect('discord_settings')
+
+
+# ─── XBOX ─────────────────────────────────────────────────────────────────────
 
 @login_required
 def xbox_settings(request):
@@ -435,33 +250,215 @@ def xbox_settings(request):
 
 
 @login_required
+def xbox_connect(request):
+    from .xbox_api import get_oauth_url
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(get_oauth_url())
+
+
+def xbox_callback(request):
+    from .xbox_api import exchange_code, get_xsts_token, get_xbox_profile
+    from .cron import setup_xbox_polling_schedule
+    from django.utils import timezone
+    from datetime import timedelta
+
+    code = request.GET.get('code')
+    error = request.GET.get('error')
+    if error or not code:
+        messages.error(request, f"Xbox error: {error} — {request.GET.get('error_description', '')}")
+        return redirect('account_settings')
+
+    tokens = exchange_code(code)
+    if not tokens or 'access_token' not in tokens:
+        messages.error(request, "Failed to connect Xbox. Please try again.")
+        return redirect('account_settings')
+
+    xsts_token, uhs = get_xsts_token(tokens['access_token'])
+    if not xsts_token:
+        messages.error(request, "Failed to authenticate with Xbox Live.")
+        return redirect('account_settings')
+
+    profile = get_xbox_profile(xsts_token, uhs)
+    if not profile:
+        messages.error(request, "Failed to get Xbox profile.")
+        return redirect('account_settings')
+
+    request.user.xbox_id = profile.get('xuid', '')
+    request.user.xbox_gamertag = profile.get('gamertag', '')
+    request.user.xbox_avatar = profile.get('avatar', '')
+    request.user.xbox_access_token = tokens['access_token']
+    request.user.xbox_refresh_token = tokens.get('refresh_token', '')
+    request.user.xbox_token_expires = timezone.now() + timedelta(seconds=tokens.get('expires_in', 3600))
+    request.user.xbox_polling_enabled = True
+    request.user.save()
+
+    setup_xbox_polling_schedule()
+    messages.success(request, f"Connected to Xbox as {request.user.xbox_gamertag}!")
+    return redirect('xbox_settings')
+
+
+@login_required
+def xbox_disconnect(request):
+    if request.method == 'POST':
+        _disconnect_platform(request.user, {
+            'xbox_id': '', 'xbox_gamertag': '', 'xbox_avatar': '',
+            'xbox_access_token': '', 'xbox_refresh_token': '',
+            'xbox_token_expires': None, 'xbox_polling_enabled': False,
+        })
+        messages.success(request, "Xbox account disconnected.")
+    return redirect('account_settings')
+
+
+@login_required
 def xbox_toggle_polling(request):
     if request.method == 'POST':
-        request.user.xbox_polling_enabled = not request.user.xbox_polling_enabled
-        request.user.save()
-        status = "enabled" if request.user.xbox_polling_enabled else "paused"
+        status = _toggle_polling(request.user, 'xbox_polling_enabled')
         messages.success(request, f"Xbox auto-tracking {status}.")
     return redirect('xbox_settings')
 
 
 @login_required
 def xbox_poll_now(request):
-    """Manually trigger an Xbox presence check."""
     if request.method == 'POST':
         from .xbox_api import get_fresh_xsts, get_currently_playing
         if not request.user.xbox_id:
             messages.error(request, "No Xbox account connected.")
             return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
-
         xsts_token, uhs = get_fresh_xsts(request.user)
         if not xsts_token:
             messages.error(request, "Failed to refresh Xbox token.")
             return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
-
         playing = get_currently_playing(xsts_token, uhs)
-        if playing:
-            messages.success(request, f"Xbox: Currently playing {playing['name']}")
-        else:
-            messages.info(request, "Xbox: Not currently playing anything.")
-
+        msg = f"Xbox: Currently playing {playing['name']}" if playing else "Xbox: Not currently playing anything."
+        messages.success(request, msg) if playing else messages.info(request, msg)
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+
+# ─── PSN ──────────────────────────────────────────────────────────────────────
+
+@login_required
+def psn_settings(request):
+    return render(request, 'accounts/psn_settings.html')
+
+
+@login_required
+def psn_connect(request):
+    if request.method == 'POST':
+        from .psn_api import get_psn_profile
+        psn_username = request.POST.get('psn_username', '').strip()
+        if psn_username:
+            profile = get_psn_profile(psn_username)
+            if profile:
+                request.user.psn_username = profile['username']
+                request.user.psn_account_id = profile['id']
+                request.user.psn_avatar = profile.get('avatar', '')
+                request.user.psn_polling_enabled = True
+                request.user.save()
+                from .cron import setup_psn_polling_schedule
+                setup_psn_polling_schedule()
+                messages.success(request, f"Connected as {profile['username']}!")
+            else:
+                messages.error(request, "PSN username not found or profile is private.")
+    return redirect('psn_settings')
+
+
+@login_required
+def psn_disconnect(request):
+    if request.method == 'POST':
+        _disconnect_platform(request.user, {
+            'psn_username': '', 'psn_account_id': '',
+            'psn_avatar': '', 'psn_polling_enabled': False,
+        })
+        messages.success(request, "PSN disconnected.")
+    return redirect('psn_settings')
+
+
+@login_required
+def psn_toggle_polling(request):
+    if request.method == 'POST':
+        status = _toggle_polling(request.user, 'psn_polling_enabled')
+        messages.success(request, f"PSN auto-tracking {status}.")
+    return redirect('psn_settings')
+
+
+@login_required
+def psn_poll_now(request):
+    if request.method == 'POST' and request.user.psn_username:
+        from .psn_api import get_currently_playing
+        result = get_currently_playing(request.user.psn_username)
+        if result:
+            messages.success(request, f"Currently playing: {result['name']}")
+        else:
+            messages.info(request, "Not currently playing anything on PSN.")
+    return redirect('psn_settings')
+
+
+# ─── SYNC ALL ─────────────────────────────────────────────────────────────────
+
+@login_required
+def sync_all(request):
+    if request.method != 'POST':
+        return redirect('dashboard')
+
+    from play_sessions.models import Session
+
+    def get_active():
+        return Session.objects.filter(
+            game__user=request.user, ended_at__isnull=True
+        ).select_related('game').first()
+
+    # Already in a session
+    active = get_active()
+    if active:
+        messages.info(request, f"Already tracking: {active.game.title}")
+        return redirect('session_active', pk=active.pk)
+
+    checked = []
+
+    # Steam
+    if request.user.steam_id and request.user.steam_polling_enabled:
+        from .tasks import poll_steam_for_user
+        checked.append('Steam')
+        poll_steam_for_user(request.user.pk)
+        active = get_active()
+        if active:
+            messages.success(request, f"Session started: {active.game.title}!")
+            return redirect('session_active', pk=active.pk)
+
+    # Xbox
+    if request.user.xbox_id and request.user.xbox_polling_enabled:
+        from .tasks import poll_xbox_for_user
+        checked.append('Xbox')
+        poll_xbox_for_user(request.user.pk)
+        active = get_active()
+        if active:
+            messages.success(request, f"Session started: {active.game.title}!")
+            return redirect('session_active', pk=active.pk)
+
+    # PSN
+    if request.user.psn_username and request.user.psn_polling_enabled:
+        from .tasks import poll_psn_for_user
+        checked.append('PSN')
+        poll_psn_for_user(request.user.pk)
+        active = get_active()
+        if active:
+            messages.success(request, f"Session started: {active.game.title}!")
+            return redirect('session_active', pk=active.pk)
+
+    # Discord
+    if request.user.discord_id and request.user.discord_polling_enabled:
+        from .tasks import poll_discord_for_user
+        checked.append('Discord')
+        poll_discord_for_user(request.user.pk)
+        active = get_active()
+        if active:
+            messages.success(request, f"Session started: {active.game.title}!")
+            return redirect('session_active', pk=active.pk)
+
+    if checked:
+        messages.info(request, f"Checked {', '.join(checked)} — not playing anything right now.")
+    else:
+        messages.info(request, "No platforms connected with auto-tracking enabled.")
+
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'dashboard'
+    return redirect(next_url)

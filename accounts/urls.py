@@ -25,5 +25,10 @@ urlpatterns = [
     path('settings/xbox/disconnect/', views.xbox_disconnect, name='xbox_disconnect'),
     path('settings/xbox/toggle/', views.xbox_toggle_polling, name='xbox_toggle_polling'),
     path('settings/xbox/poll/', views.xbox_poll_now, name='xbox_poll_now'),
+    path('settings/psn/', views.psn_settings, name='psn_settings'),
+    path('settings/psn/connect/', views.psn_connect, name='psn_connect'),
+    path('settings/psn/disconnect/', views.psn_disconnect, name='psn_disconnect'),
+    path('settings/psn/toggle/', views.psn_toggle_polling, name='psn_toggle_polling'),
+    path('settings/psn/poll/', views.psn_poll_now, name='psn_poll_now'),
     path('sync-all/', views.sync_all, name='sync_all'),
 ]
