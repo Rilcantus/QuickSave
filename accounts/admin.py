@@ -44,8 +44,8 @@ class CustomUserAdmin(UserAdmin):
     @admin.display(description='Pro', boolean=False)
     def is_pro_badge(self, obj):
         if obj.is_pro:
-            return format_html('<span style="color:#22c55e;font-weight:bold;">✦ Pro</span>')
-        return format_html('<span style="color:#6b7280;">Free</span>')
+            return format_html('<span style="color:#22c55e;font-weight:bold;">{}</span>', '✦ Pro')
+        return format_html('<span style="color:#6b7280;">{}</span>', 'Free')
 
     @admin.display(description='Platforms')
     def platforms_connected(self, obj):
