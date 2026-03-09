@@ -17,4 +17,6 @@ urlpatterns = [
     path('<int:pk>/assistant/', views.ai_assistant, name='ai_assistant'),
     path('<int:pk>/assistant/chat/', views.ai_chat, name='ai_chat'),
     path('rawg-search/', views.rawg_search, name='rawg_search'),
+    path('wrapped/', views.gaming_wrapped, name='gaming_wrapped'),
+    path('wrapped/<int:year>/', views.gaming_wrapped, name='gaming_wrapped_year'),
 ]

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}{{ year }} Gaming Wrapped — QuickSave{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-4 pb-12">
+
+  <!-- Header -->
+  <div class="text-center mb-8">
+    <p class="text-brand-400 text-sm font-medium uppercase tracking-widest mb-1">QuickSave</p>
+    <h1 class="text-4xl font-bold text-white mb-2">{{ year }} Wrapped</h1>
+    <p class="text-gray-500 text-sm">Your year in gaming</p>
+
+    {% if available_years|length > 1 %}
+    <div class="flex justify-center gap-2 mt-4 flex-wrap">
+      {% for y in available_years %}
+        <a href="{% url 'gaming_wrapped_year' y %}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if y == year %}bg-brand-500 text-white{% else %}bg-gray-800 text-gray-400 hover:bg-gray-700{% endif %}">
+          {{ y }}
+        </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if total_sessions == 0 %}
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 text-center">
+      <p class="text-4xl mb-3">🎮</p>
+      <p class="text-gray-400">No sessions tracked in {{ year }} yet.</p>
+      <a href="{% url 'game_list' %}" class="inline-block mt-4 text-brand-400 text-sm hover:underline">Go track some games →</a>
+    </div>
+  {% else %}
+
+  <!-- Hero stat -->
+  <div class="bg-gradient-to-br from-brand-500/20 to-brand-600/5 border border-brand-500/30 rounded-2xl p-8 text-center mb-4">
+    <p class="text-gray-400 text-sm mb-1">Total playtime in {{ year }}</p>
+    <p class="text-6xl font-bold text-brand-400 mb-2">{{ total_playtime }}</p>
+    <p class="text-gray-500 text-sm">across {{ total_sessions }} session{{ total_sessions|pluralize }} in {{ total_games }} game{{ total_games|pluralize }}</p>
+  </div>
+
+  <!-- Core stats grid -->
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+      <p class="text-3xl font-bold text-white">{{ total_sessions }}</p>
+      <p class="text-gray-500 text-sm mt-1">Sessions played</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+      <p class="text-3xl font-bold text-white">{{ total_games }}</p>
+      <p class="text-gray-500 text-sm mt-1">Games tracked</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+      <p class="text-3xl font-bold text-white">{{ total_hours }}</p>
+      <p class="text-gray-500 text-sm mt-1">Hours logged</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-center">
+      <p class="text-3xl font-bold text-white">{{ total_entries }}</p>
+      <p class="text-gray-500 text-sm mt-1">Journal entries</p>
+    </div>
+  </div>
+
+  <!-- Top games -->
+  {% if top_games %}
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <h2 class="text-lg font-semibold text-white mb-4">Top Games</h2>
+    <div class="space-y-3">
+      {% for game in top_games %}
+      <div class="flex items-center gap-3">
+        <span class="text-gray-600 text-sm font-mono w-4 shrink-0">{{ forloop.counter }}</span>
+        {% if game.game__cover_image_url %}
+          <img src="{{ game.game__cover_image_url }}" alt="{{ game.game__title }}"
+               class="w-8 h-10 object-cover rounded shrink-0 border border-gray-800" />
+        {% else %}
+          <div class="w-8 h-10 bg-gray-800 rounded shrink-0 flex items-center justify-center text-gray-600 text-xs">🎮</div>
+        {% endif %}
+        <div class="flex-1 min-w-0">
+          <a href="{% url 'game_detail' game.game__id %}"
+             class="text-white text-sm font-medium hover:text-brand-400 transition truncate block">
+            {{ game.game__title }}
+          </a>
+          <p class="text-gray-500 text-xs">{{ game.session_count }} session{{ game.session_count|pluralize }}</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-brand-400 text-sm font-semibold">
+            {% with h=game.total_time|divisibleby:3600 %}
+              {% widthratio game.total_time 3600 1 %}h
+            {% endwith %}
+          </p>
+        </div>
+      </div>
+      {% if not forloop.last %}
+        <div class="h-px bg-gray-800"></div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Monthly activity chart -->
+  {% if month_labels_json != "[]" %}
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-start justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Monthly Activity</h2>
+      {% if peak_month %}
+        <div class="text-right">
+          <p class="text-xs text-gray-500">Most active</p>
+          <p class="text-brand-400 text-sm font-semibold">{{ peak_month }}</p>
+        </div>
+      {% endif %}
+    </div>
+    <canvas id="monthChart" height="120"></canvas>
+  </div>
+  {% endif %}
+
+  <!-- Highlights row -->
+  <div class="grid grid-cols-1 sm:grid-cols-{% if fav_source %}3{% else %}2{% endif %} gap-4 mb-4">
+    {% if longest %}
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Longest Session</p>
+      <p class="text-white font-semibold text-sm truncate">{{ longest.game.title }}</p>
+      <p class="text-brand-400 font-bold text-xl mt-1">{{ longest.duration_display }}</p>
+    </div>
+    {% endif %}
+
+    {% if first_session %}
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">First Game of {{ year }}</p>
+      <p class="text-white font-semibold text-sm truncate">{{ first_session.game.title }}</p>
+      <p class="text-gray-500 text-xs mt-1">{{ first_session.started_at|date:"M j" }}</p>
+    </div>
+    {% endif %}
+
+    {% if fav_source %}
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Favorite Platform</p>
+      <p class="text-white font-semibold text-xl">{{ fav_source }}</p>
+      <p class="text-gray-500 text-xs mt-1">Most sessions tracked here</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Mood breakdown -->
+  {% if mood_counts %}
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-start justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Mood Breakdown</h2>
+      {% if top_mood %}
+        <div class="text-right">
+          <p class="text-xs text-gray-500">Top mood</p>
+          <p class="text-brand-400 text-sm font-semibold">{{ top_mood }}</p>
+        </div>
+      {% endif %}
+    </div>
+    <div class="space-y-2">
+      {% for mood, count in mood_counts.items %}
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-300 w-24 shrink-0 truncate">{{ mood }}</span>
+        <div class="flex-1 bg-gray-800 rounded-full h-2">
+          <div class="bg-brand-500 h-2 rounded-full" style="width: {{ count|floatformat:0 }}00%"></div>
+        </div>
+        <span class="text-xs text-gray-500 w-6 text-right shrink-0">{{ count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}{# end if total_sessions #}
+
+  <!-- Nav -->
+  <div class="text-center mt-6">
+    <a href="{% url 'overall_stats' %}" class="text-gray-500 hover:text-white text-sm transition">
+      ← Back to Stats
+    </a>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const monthLabels = {{ month_labels_json|safe }};
+  const monthHours = {{ month_hours_json|safe }};
+
+  if (monthLabels.length > 0 && document.getElementById('monthChart')) {
+    new Chart(document.getElementById('monthChart'), {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          data: monthHours,
+          backgroundColor: 'rgba(34, 197, 94, 0.6)',
+          borderColor: 'rgba(34, 197, 94, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6B7280', font: { size: 11 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6B7280', font: { size: 11 } }, beginAtZero: true }
+        }
+      }
+    });
+  }
+})();
+</script>
+
+{% endblock %}

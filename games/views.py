@@ -325,3 +325,105 @@ def overall_stats(request):
         'game_times_json': json.dumps([round((g.total_time or 0) / 3600, 1) for g in time_per_game]),
         'time_per_game': time_per_game,
     })
+
+
+@login_required
+def gaming_wrapped(request, year=None):
+    from django.db.models import Sum, Max, Count
+    from django.utils import timezone
+    from collections import Counter
+
+    if not request.user.is_pro:
+        return render(request, 'games/wrapped_upgrade.html')
+
+    current_year = timezone.now().year
+    if year is None:
+        year = current_year
+
+    # Available years with session data
+    available_years = list(
+        Session.objects.filter(game__user=request.user, ended_at__isnull=False)
+        .dates('started_at', 'year')
+        .values_list('started_at__year', flat=True)
+        .order_by('-started_at__year')
+        .distinct()
+    )
+    if not available_years:
+        available_years = [current_year]
+    if year not in available_years:
+        year = available_years[0]
+
+    sessions = Session.objects.filter(
+        game__user=request.user,
+        ended_at__isnull=False,
+        started_at__year=year,
+    )
+
+    total_seconds = sessions.aggregate(total=Sum('duration_seconds'))['total'] or 0
+    total_sessions = sessions.count()
+    total_games = sessions.values('game').distinct().count()
+    total_entries = request.user.journal_entries.filter(created_at__year=year).count()
+
+    # Top 5 games by playtime
+    top_games = (
+        sessions.values('game__id', 'game__title', 'game__cover_image_url')
+        .annotate(total_time=Sum('duration_seconds'), session_count=Count('id'))
+        .order_by('-total_time')[:5]
+    )
+
+    # Most active month
+    month_data = (
+        sessions.values('started_at__month')
+        .annotate(hours=Sum('duration_seconds'))
+        .order_by('started_at__month')
+    )
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    month_labels = [month_names[m['started_at__month'] - 1] for m in month_data]
+    month_hours = [round((m['hours'] or 0) / 3600, 1) for m in month_data]
+    peak_month = month_names[max(month_data, key=lambda m: m['hours'] or 0)['started_at__month'] - 1] if month_data else None
+
+    # Longest single session
+    longest = sessions.order_by('-duration_seconds').select_related('game').first()
+
+    # Favorite platform (by session count)
+    source_counts = dict(
+        sessions.values('source').annotate(count=Count('id')).values_list('source', 'count')
+    )
+    fav_source = max(source_counts, key=source_counts.get) if source_counts else None
+    source_labels = {
+        'manual': 'Manual', 'steam': 'Steam', 'xbox': 'Xbox',
+        'discord': 'Discord', 'psn': 'PSN', 'roblox': 'Roblox',
+    }
+
+    # Mood breakdown from journal entries
+    moods = list(
+        request.user.journal_entries.filter(created_at__year=year)
+        .exclude(mood='')
+        .values_list('mood', flat=True)
+    )
+    mood_counts = Counter(moods)
+    top_mood = mood_counts.most_common(1)[0][0] if mood_counts else None
+
+    # First game of the year
+    first_session = sessions.order_by('started_at').select_related('game').first()
+
+    return render(request, 'games/gaming_wrapped.html', {
+        'year': year,
+        'current_year': current_year,
+        'available_years': available_years,
+        'total_playtime': format_duration(total_seconds),
+        'total_hours': round(total_seconds / 3600, 1),
+        'total_sessions': total_sessions,
+        'total_games': total_games,
+        'total_entries': total_entries,
+        'top_games': top_games,
+        'month_labels_json': json.dumps(month_labels),
+        'month_hours_json': json.dumps(month_hours),
+        'peak_month': peak_month,
+        'longest': longest,
+        'fav_source': source_labels.get(fav_source, fav_source) if fav_source else None,
+        'mood_counts': dict(mood_counts.most_common(5)),
+        'top_mood': top_mood,
+        'first_session': first_session,
+    })
