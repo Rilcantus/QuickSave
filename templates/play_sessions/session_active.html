@@ -19,9 +19,18 @@
     <p class="text-gray-400 text-center mb-1">{{ session.descriptor.name }}</p>
   {% endif %}
 
-  <p class="text-gray-500 text-sm text-center mb-8">
+  <p class="text-gray-500 text-sm text-center mb-4">
     Started <span data-utc="{{ session.started_at|date:'c' }}">{{ session.started_at|date:"g:i A" }}</span>
   </p>
+
+  {% if session.goal %}
+    <div class="bg-brand-500/5 border border-brand-500/20 rounded-xl px-4 py-3 mb-6 text-center">
+      <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Goal</p>
+      <p class="text-brand-400 text-sm font-medium">{{ session.goal }}</p>
+    </div>
+  {% else %}
+    <div class="mb-6"></div>
+  {% endif %}
 
   <!-- Timer -->
   <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 mb-6 text-center">

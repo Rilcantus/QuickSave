@@ -5,6 +5,18 @@ from django.conf import settings
 class Game(models.Model):
   """A game the user plays. Root of everything in QuickSave"""
 
+  STATUS_PLAYING = 'playing'
+  STATUS_COMPLETED = 'completed'
+  STATUS_DROPPED = 'dropped'
+  STATUS_BACKLOG = 'backlog'
+
+  STATUS_CHOICES = [
+      (STATUS_PLAYING, 'Playing'),
+      (STATUS_COMPLETED, 'Completed'),
+      (STATUS_DROPPED, 'Dropped'),
+      (STATUS_BACKLOG, 'Backlog'),
+  ]
+
   user = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
@@ -13,6 +25,8 @@ class Game(models.Model):
   title = models.CharField(max_length=200)
   platform = models.CharField(max_length=100, blank=True)
   cover_image_url = models.URLField(blank=True)
+  status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PLAYING, blank=True)
+  rating = models.PositiveSmallIntegerField(null=True, blank=True)  # 1-10
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
 

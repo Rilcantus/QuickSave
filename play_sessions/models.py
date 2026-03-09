@@ -38,6 +38,7 @@ class Session(models.Model):
     started_at = models.DateTimeField(default=timezone.now)
     ended_at = models.DateTimeField(null=True, blank=True)
     duration_seconds = models.PositiveIntegerField(null=True, blank=True)
+    goal = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     source = models.CharField(
         max_length=20,

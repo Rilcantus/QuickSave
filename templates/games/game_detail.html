@@ -20,6 +20,23 @@
       {% if game.platform %}
         <p class="text-gray-400 mt-1">{{ game.platform }}</p>
       {% endif %}
+      <div class="flex items-center gap-2 mt-2 flex-wrap">
+        {% if game.status %}
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full
+            {% if game.status == 'playing' %}bg-brand-500/15 text-brand-400
+            {% elif game.status == 'completed' %}bg-blue-500/15 text-blue-400
+            {% elif game.status == 'dropped' %}bg-red-500/15 text-red-400
+            {% elif game.status == 'backlog' %}bg-gray-700 text-gray-400
+            {% endif %}">
+            {{ game.get_status_display }}
+          </span>
+        {% endif %}
+        {% if game.rating %}
+          <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-400">
+            ★ {{ game.rating }}/10
+          </span>
+        {% endif %}
+      </div>
     </div>
     <div class="flex gap-2 shrink-0">
       <a href="{% url 'game_stats' game.pk %}"

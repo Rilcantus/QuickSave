@@ -14,10 +14,14 @@ class SessionStartForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'placeholder': 'e.g. Modded Run, STR Build...'})
     )
+    goal = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': "e.g. Beat the final boss, reach level 20..."})
+    )
 
     class Meta:
         model = Session
-        fields = ['descriptor', 'new_descriptor']
+        fields = ['descriptor', 'new_descriptor', 'goal']
 
     def __init__(self, game, *args, **kwargs):
         super().__init__(*args, **kwargs)

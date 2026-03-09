@@ -53,9 +53,20 @@
             {% if game.platform %}
               <p class="text-gray-500 text-sm mt-0.5">{{ game.platform }}</p>
             {% endif %}
-            <p class="text-gray-600 text-xs mt-2">
-              {{ game.sessions.count }} session{{ game.sessions.count|pluralize }}
-            </p>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-gray-600 text-xs">{{ game.sessions.count }} session{{ game.sessions.count|pluralize }}</p>
+              {% if game.status and game.status != 'playing' %}
+                <span class="text-xs px-2 py-0.5 rounded-full
+                  {% if game.status == 'completed' %}bg-blue-500/15 text-blue-400
+                  {% elif game.status == 'dropped' %}bg-red-500/15 text-red-400
+                  {% elif game.status == 'backlog' %}bg-gray-700 text-gray-400
+                  {% endif %}">
+                  {{ game.get_status_display }}
+                </span>
+              {% elif game.rating %}
+                <span class="text-xs text-yellow-400">★ {{ game.rating }}/10</span>
+              {% endif %}
+            </div>
           </div>
         </a>
       {% endfor %}
