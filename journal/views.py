@@ -1,11 +1,16 @@
+import json
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import models
+from django.http import JsonResponse
 from play_sessions.models import Session
 from games.models import Game
 from .models import JournalEntry
 from .forms import JournalEntryForm
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -123,3 +128,63 @@ def journal_delete(request, pk):
         return redirect('game_detail', pk=game.pk)
 
     return render(request, 'journal/journal_confirm_delete.html', {'entry': entry})
+
+
+@login_required
+def journal_ai_prefill(request, session_pk):
+    """Return AI-generated journal draft for a session (Pro only)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    if not request.user.is_pro:
+        return JsonResponse({'error': 'Pro required'}, status=403)
+
+    session = get_object_or_404(Session, pk=session_pk, game__user=request.user)
+
+    from django.conf import settings
+    if not getattr(settings, 'ANTHROPIC_API_KEY', ''):
+        return JsonResponse({'error': 'AI unavailable'}, status=503)
+
+    try:
+        import anthropic
+        from games.views import format_duration
+
+        notes = session.notes or ''
+        duration = session.duration_display or 'unknown duration'
+        game = session.game
+
+        system = (
+            f"You are helping {request.user.username} write a gaming journal entry "
+            f"for a {duration} session of {game.title}"
+            + (f" on {game.platform}" if game.platform else "") + ".\n"
+            "Based on their quick notes, generate a thoughtful journal entry draft.\n"
+            "Return ONLY valid JSON with these keys: body, accomplishments, blockers, next_goals, mood.\n"
+            "Keep each field concise (2-4 sentences max). mood should be 1-3 words.\n"
+            "If there are no notes, make reasonable suggestions based on the game."
+        )
+        user_msg = f"Session notes: {notes}" if notes else f"No notes taken during this {duration} session of {game.title}."
+
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        response = client.messages.create(
+            model='claude-haiku-4-5-20251001',
+            max_tokens=512,
+            system=system,
+            messages=[{'role': 'user', 'content': user_msg}],
+        )
+        text = response.content[0].text.strip()
+        # Strip markdown code fences if present
+        if text.startswith('```'):
+            text = text.split('```')[1]
+            if text.startswith('json'):
+                text = text[4:]
+        draft = json.loads(text)
+        return JsonResponse({
+            'body': draft.get('body', ''),
+            'accomplishments': draft.get('accomplishments', ''),
+            'blockers': draft.get('blockers', ''),
+            'next_goals': draft.get('next_goals', ''),
+            'mood': draft.get('mood', ''),
+        })
+    except Exception as e:
+        logger.error('Journal AI prefill error session %s: %s', session_pk, e)
+        return JsonResponse({'error': 'Failed to generate draft.'}, status=500)

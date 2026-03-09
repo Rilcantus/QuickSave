@@ -30,6 +30,16 @@
     {% endif %}
   </div>
 
+  {% if session and request.user.is_pro and request.GET.prefill %}
+  <div id="ai-prefill-bar" class="bg-brand-500/10 border border-brand-500/30 rounded-xl px-4 py-3 mb-6 flex items-center justify-between gap-3">
+    <p class="text-brand-400 text-sm">✨ AI can draft this entry from your session notes.</p>
+    <button type="button" id="ai-prefill-btn"
+      class="bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition shrink-0">
+      Generate Draft
+    </button>
+  </div>
+  {% endif %}
+
   <form method="POST" class="space-y-6">
     {% csrf_token %}
     {% if form.errors %}
@@ -126,4 +136,43 @@
 
   </form>
 </div>
+
+{% if session and request.user.is_pro and request.GET.prefill %}
+<script>
+(function() {
+  const btn = document.getElementById('ai-prefill-btn');
+  if (!btn) return;
+  const prefillUrl = "{% url 'journal_ai_prefill' session.pk %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+    try {
+      const resp = await fetch(prefillUrl, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        btn.textContent = data.error || 'Error';
+        btn.disabled = false;
+        return;
+      }
+      if (data.body) document.querySelector('[name=body]').value = data.body;
+      if (data.accomplishments) document.querySelector('[name=accomplishments]').value = data.accomplishments;
+      if (data.blockers) document.querySelector('[name=blockers]').value = data.blockers;
+      if (data.next_goals) document.querySelector('[name=next_goals]').value = data.next_goals;
+      if (data.mood) document.querySelector('[name=mood]').value = data.mood;
+      document.getElementById('ai-prefill-bar').innerHTML =
+        '<p class="text-brand-400 text-sm">✨ Draft generated — edit it and save!</p>';
+    } catch {
+      btn.textContent = 'Error — try again';
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+{% endif %}
+
 {% endblock %}

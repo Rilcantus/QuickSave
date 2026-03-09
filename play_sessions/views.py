@@ -122,13 +122,24 @@ def session_active(request, pk):
 @login_required
 def session_end_prompt(request, pk):
     """Ask the user if they want to journal after ending a session."""
+    from django.utils import timezone
+    from datetime import timedelta
+
     session = get_object_or_404(Session, pk=pk, game__user=request.user)
 
     if session.is_active:
         return redirect('session_active', pk=session.pk)
 
+    week_ago = timezone.now() - timedelta(days=7)
+    sessions_this_week = Session.objects.filter(
+        game__user=request.user,
+        ended_at__isnull=False,
+        started_at__gte=week_ago,
+    ).count()
+
     return render(request, 'play_sessions/session_end_prompt.html', {
         'session': session,
+        'sessions_this_week': sessions_this_week,
     })
 
 @login_required

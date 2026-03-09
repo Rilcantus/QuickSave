@@ -3,34 +3,67 @@
 {% block title %}Session Complete — QuickSave{% endblock %}
 
 {% block content %}
-<div class="max-w-lg mx-auto mt-10 text-center" hx-boost="false">
+<div class="max-w-lg mx-auto mt-8 pb-8" hx-boost="false">
 
-  <p class="text-5xl mb-4">💾</p>
-  <h1 class="text-3xl font-bold text-white mb-2">Session Complete!</h1>
-  <p class="text-gray-400 mb-1">{{ session.game.title }}</p>
-  <p class="text-brand-400 font-semibold text-xl mb-10">{{ session.duration_display }}</p>
+  <!-- Completion header -->
+  <div class="text-center mb-6">
+    <div class="flex justify-center mb-4">
+      {% if session.game.cover_image_url %}
+        <div class="relative">
+          <img src="{{ session.game.cover_image_url }}" alt="{{ session.game.title }}"
+               class="w-20 h-28 object-cover rounded-xl border border-gray-800 shadow-lg" />
+          <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-500 rounded-full flex items-center justify-center text-sm shadow">💾</div>
+        </div>
+      {% else %}
+        <div class="text-6xl">💾</div>
+      {% endif %}
+    </div>
+    <h1 class="text-3xl font-bold text-white mb-1">Session Saved!</h1>
+    <p class="text-gray-400">{{ session.game.title }}</p>
+    <p class="text-brand-400 font-bold text-2xl mt-1">{{ session.duration_display }}</p>
 
-  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-6">
-    <p class="text-gray-300 text-lg mb-6">Want to write a journal entry?</p>
+    {% if sessions_this_week > 1 %}
+      <div class="inline-flex items-center gap-1.5 bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mt-3">
+        🔥 {{ sessions_this_week }} sessions this week
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick note recap -->
+  {% if session.notes %}
+    <div class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 mb-4 text-left">
+      <p class="text-gray-500 text-xs uppercase tracking-wide mb-1">Your notes</p>
+      <p class="text-gray-300 text-sm">{{ session.notes }}</p>
+    </div>
+  {% endif %}
+
+  <!-- Journal prompt card -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+    <p class="text-white font-semibold mb-1">Write a journal entry?</p>
+    <p class="text-gray-500 text-sm mb-5">Capture what happened while it's fresh.</p>
 
     <div class="flex flex-col gap-3">
-      <a href="{% url 'journal_create_for_session' session.pk %}"
-         class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-lg transition">
-        📓 Yes, write an entry
-      </a>
+      {% if request.user.is_pro %}
+        <a href="{% url 'journal_create_for_session' session.pk %}?prefill=1"
+           class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition text-center">
+          ✨ Write entry with AI pre-fill
+        </a>
+        <a href="{% url 'journal_create_for_session' session.pk %}"
+           class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 rounded-xl transition text-center text-sm">
+          📓 Write entry manually
+        </a>
+      {% else %}
+        <a href="{% url 'journal_create_for_session' session.pk %}"
+           class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition text-center">
+          📓 Write an entry
+        </a>
+      {% endif %}
       <a href="{% url 'game_detail' session.game.pk %}"
-         class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-3 rounded-lg transition">
+         class="w-full text-center text-gray-500 hover:text-gray-300 text-sm py-2 transition">
         Skip for now
       </a>
     </div>
   </div>
-
-  {% if session.notes %}
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-left">
-      <p class="text-gray-500 text-xs uppercase tracking-wide mb-2">Quick note</p>
-      <p class="text-gray-300 text-sm">{{ session.notes }}</p>
-    </div>
-  {% endif %}
 
 </div>
 {% endblock %}

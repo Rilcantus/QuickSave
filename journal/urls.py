@@ -8,4 +8,5 @@ urlpatterns = [
     path('<int:pk>/', views.journal_detail, name='journal_detail'),
     path('<int:pk>/edit/', views.journal_edit, name='journal_edit'),
     path('<int:pk>/delete/', views.journal_delete, name='journal_delete'),
+    path('session/<int:session_pk>/ai-prefill/', views.journal_ai_prefill, name='journal_ai_prefill'),
 ]
