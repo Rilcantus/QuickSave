@@ -88,7 +88,7 @@
   {% endif %}
 
   {% with u=request.user %}
-  {% if u.steam_polling_enabled or u.xbox_polling_enabled or u.discord_polling_enabled or u.psn_polling_enabled %}
+  {% if u.steam_polling_enabled or u.xbox_polling_enabled or u.discord_polling_enabled or u.psn_polling_enabled or u.roblox_polling_enabled %}
   <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-5 py-3 mb-6">
     <div class="flex items-center gap-2">
       <span class="w-2 h-2 bg-brand-400 rounded-full animate-pulse"></span>
@@ -100,6 +100,7 @@
           {% if u.xbox_polling_enabled and u.xbox_id %}{% if u.steam_polling_enabled and u.steam_id %}, {% endif %}Xbox{% endif %}
           {% if u.psn_polling_enabled and u.psn_username %}{% if u.steam_polling_enabled and u.steam_id or u.xbox_polling_enabled and u.xbox_id %}, {% endif %}PSN{% endif %}
           {% if u.discord_polling_enabled and u.discord_id %}{% if u.steam_polling_enabled and u.steam_id or u.xbox_polling_enabled and u.xbox_id or u.psn_polling_enabled and u.psn_username %}, {% endif %}Discord{% endif %}
+          {% if u.roblox_polling_enabled and u.roblox_user_id %}{% if u.steam_polling_enabled and u.steam_id or u.xbox_polling_enabled and u.xbox_id or u.psn_polling_enabled and u.psn_username or u.discord_polling_enabled and u.discord_id %}, {% endif %}Roblox{% endif %}
           {% endspaceless %}
         </span>
       </p>
