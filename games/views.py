@@ -202,6 +202,46 @@ def descriptor_delete(request, game_pk, pk):
     })
 
 @login_required
+def ai_assistant(request, pk):
+    game = get_object_or_404(Game, pk=pk, user=request.user)
+    return render(request, 'games/ai_assistant.html', {'game': game})
+
+
+@login_required
+def ai_chat(request, pk):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    game = get_object_or_404(Game, pk=pk, user=request.user)
+
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+        history = data.get('history', [])
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
+    if not message:
+        return JsonResponse({'error': 'Message required'}, status=400)
+
+    # Sanitize history to only allowed roles/keys
+    clean_history = [
+        {'role': m['role'], 'content': m['content']}
+        for m in history
+        if isinstance(m, dict) and m.get('role') in ('user', 'assistant')
+        and isinstance(m.get('content'), str)
+    ][-20:]  # cap at last 20 turns
+
+    from .ai_assistant import chat
+    reply = chat(request.user, game, message, clean_history)
+
+    if reply is None:
+        return JsonResponse({'error': 'Failed to get a response. Please try again.'}, status=500)
+
+    return JsonResponse({'reply': reply})
+
+
+@login_required
 def rawg_search(request):
     query = request.GET.get('q', '').strip()
     results = search_games(query)

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant — {{ game.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-4 pb-8" hx-boost="false">
+
+  <!-- Header -->
+  <p class="text-gray-500 text-sm mb-4">
+    <a href="{% url 'game_list' %}" class="hover:text-brand-400 transition">My Games</a>
+    <span class="mx-2">›</span>
+    <a href="{% url 'game_detail' game.pk %}" class="hover:text-brand-400 transition">{{ game.title }}</a>
+    <span class="mx-2">›</span>
+    AI Assistant
+  </p>
+
+  <div class="flex items-center gap-3 mb-6">
+    {% if game.cover_image_url %}
+      <img src="{{ game.cover_image_url }}" alt="{{ game.title }}"
+           class="w-10 h-14 object-cover rounded-lg border border-gray-800 shrink-0" />
+    {% endif %}
+    <div>
+      <h1 class="text-xl font-bold text-white">{{ game.title }} — AI Assistant</h1>
+      <p class="text-gray-500 text-xs mt-0.5">Powered by Claude · Knows your journal & playtime</p>
+    </div>
+  </div>
+
+  <!-- Chat window -->
+  <div id="chat-window"
+       class="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-4 min-h-64 max-h-[60vh] overflow-y-auto flex flex-col gap-3">
+
+    <!-- Intro message -->
+    <div class="flex gap-3">
+      <div class="w-7 h-7 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs shrink-0 mt-0.5">✨</div>
+      <div class="bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3 max-w-prose">
+        <p class="text-gray-300 text-sm">
+          Hey! I know your {{ game.title }} history — your sessions, playtime, and journal notes.
+          Ask me anything: tips, builds, walkthroughs, lore, or just to talk through your playthrough.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Suggested starters -->
+  <div id="suggestions" class="flex flex-wrap gap-2 mb-4">
+    <button type="button" class="suggestion text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 px-3 py-1.5 rounded-full transition">
+      Any tips for a new player?
+    </button>
+    <button type="button" class="suggestion text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 px-3 py-1.5 rounded-full transition">
+      What should I focus on next?
+    </button>
+    <button type="button" class="suggestion text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 px-3 py-1.5 rounded-full transition">
+      Help me with a build
+    </button>
+    <button type="button" class="suggestion text-xs bg-gray-800 hover:bg-gray-700 text-gray-400 px-3 py-1.5 rounded-full transition">
+      Summarize my progress
+    </button>
+  </div>
+
+  <!-- Input -->
+  <div class="flex gap-2">
+    <input
+      id="chat-input"
+      type="text"
+      placeholder="Ask anything about {{ game.title }}..."
+      autocomplete="off"
+      class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition text-sm"
+    />
+    <button id="send-btn"
+      class="bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-3 rounded-xl transition text-sm shrink-0">
+      Send
+    </button>
+  </div>
+
+  <p class="text-gray-600 text-xs text-center mt-3">
+    AI responses may be inaccurate. Always verify tips from official sources.
+  </p>
+
+</div>
+
+<script>
+(function() {
+  const chatWindow = document.getElementById('chat-window');
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
+  const suggestions = document.getElementById('suggestions');
+  const chatUrl = "{% url 'ai_chat' game.pk %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  let history = [];
+
+  function scrollToBottom() {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function appendMessage(role, text) {
+    const isUser = role === 'user';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex gap-3' + (isUser ? ' justify-end' : '');
+
+    if (!isUser) {
+      const avatar = document.createElement('div');
+      avatar.className = 'w-7 h-7 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs shrink-0 mt-0.5';
+      avatar.textContent = '✨';
+      wrapper.appendChild(avatar);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = isUser
+      ? 'bg-brand-500 bg-opacity-20 border border-brand-500 border-opacity-20 rounded-xl rounded-tr-sm px-4 py-3 max-w-prose'
+      : 'bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3 max-w-prose';
+
+    // Render newlines as <br> and escape HTML
+    const p = document.createElement('p');
+    p.className = 'text-sm ' + (isUser ? 'text-white' : 'text-gray-300');
+    p.style.whiteSpace = 'pre-wrap';
+    p.textContent = text;
+    bubble.appendChild(p);
+    wrapper.appendChild(bubble);
+    chatWindow.appendChild(wrapper);
+    scrollToBottom();
+  }
+
+  function appendTyping() {
+    const wrapper = document.createElement('div');
+    wrapper.id = 'typing-indicator';
+    wrapper.className = 'flex gap-3';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'w-7 h-7 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs shrink-0 mt-0.5';
+    avatar.textContent = '✨';
+    wrapper.appendChild(avatar);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3';
+    bubble.innerHTML = '<span class="flex gap-1 items-center h-5"><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:0ms"></span><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:150ms"></span><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:300ms"></span></span>';
+    wrapper.appendChild(bubble);
+    chatWindow.appendChild(wrapper);
+    scrollToBottom();
+    return wrapper;
+  }
+
+  async function sendMessage(message) {
+    if (!message.trim()) return;
+
+    suggestions.classList.add('hidden');
+    appendMessage('user', message);
+    input.value = '';
+    sendBtn.disabled = true;
+
+    const typingEl = appendTyping();
+
+    try {
+      const resp = await fetch(chatUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({ message, history }),
+      });
+
+      const data = await resp.json();
+      typingEl.remove();
+
+      if (resp.ok && data.reply) {
+        history.push({ role: 'user', content: message });
+        history.push({ role: 'assistant', content: data.reply });
+        appendMessage('assistant', data.reply);
+      } else {
+        appendMessage('assistant', data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (e) {
+      typingEl.remove();
+      appendMessage('assistant', 'Network error. Please check your connection and try again.');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', () => sendMessage(input.value));
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input.value);
+    }
+  });
+
+  document.querySelectorAll('.suggestion').forEach(btn => {
+    btn.addEventListener('click', () => sendMessage(btn.textContent.trim()));
+  });
+})();
+</script>
+
+{% endblock %}
