@@ -48,9 +48,41 @@
 
   {% block extra_head %}{% endblock %}
 
+  <style>
+    #loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: #22c55e;
+      z-index: 9999;
+      transition: width 0.2s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    #loading-bar.loading {
+      opacity: 1;
+      animation: loading-progress 1.5s ease-in-out infinite;
+    }
+    @keyframes loading-progress {
+      0%   { width: 0%; }
+      50%  { width: 70%; }
+      100% { width: 90%; }
+    }
+    #loading-bar.done {
+      width: 100% !important;
+      opacity: 0;
+      animation: none;
+      transition: width 0.1s ease, opacity 0.4s ease 0.1s;
+    }
+  </style>
+
 </head>
 
 <body class="h-full font-sans text-gray-100 bg-gray-950" hx-boost="true">
+
+  <!-- Loading bar -->
+  <div id="loading-bar"></div>
 
   <!-- Navbar -->
   <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
@@ -224,6 +256,30 @@ document.addEventListener('DOMContentLoaded', convertUTCTimes);
 
 // Run after every HTMX swap
 document.addEventListener('htmx:afterSwap', convertUTCTimes);
+
+// Loading bar
+const loadingBar = document.getElementById('loading-bar');
+document.addEventListener('htmx:beforeRequest', () => {
+  loadingBar.classList.remove('done');
+  loadingBar.classList.add('loading');
+});
+document.addEventListener('htmx:afterRequest', () => {
+  loadingBar.classList.remove('loading');
+  loadingBar.classList.add('done');
+});
+
+// Sync button loading state
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('form[action*="sync-all"]').forEach(form => {
+    form.addEventListener('submit', () => {
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Checking...';
+      }
+    });
+  });
+});
   </script>
 
 </body>
