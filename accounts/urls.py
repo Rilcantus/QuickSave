@@ -38,4 +38,6 @@ urlpatterns = [
     path('settings/roblox/poll/', views.roblox_poll_now, name='roblox_poll_now'),
     path('sync-all/', views.sync_all, name='sync_all'),
     path('settings/export/', views.export_data, name='export_data'),
+    path('push/subscribe/', views.push_subscribe, name='push_subscribe'),
+    path('push/unsubscribe/', views.push_unsubscribe, name='push_unsubscribe'),
 ]

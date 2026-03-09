@@ -169,6 +169,11 @@ MICROSOFT_REDIRECT_URI = env('MICROSOFT_REDIRECT_URI', default='https://www.quic
 
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
 
+# Web Push (VAPID) — generate keys with: python manage.py generate_vapid_keys
+VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY', default='')
+VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY', default='')
+VAPID_ADMIN_EMAIL = env('VAPID_ADMIN_EMAIL', default='admin@quicksave.site')
+
 # CORS — allow desktop app (Electron sends null origin from file://)
 CORS_URLS_REGEX = r'^/api/.*$'
 CORS_ALLOW_ALL_ORIGINS = True          # API is token-protected so this is safe

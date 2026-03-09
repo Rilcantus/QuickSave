@@ -50,3 +50,19 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class PushSubscription(models.Model):
+    """Browser push notification subscription for a user's device."""
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='push_subscriptions',
+    )
+    endpoint = models.TextField(unique=True)
+    p256dh = models.TextField()
+    auth = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} — {self.endpoint[:60]}"

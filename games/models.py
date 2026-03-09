@@ -95,6 +95,23 @@ class CustomFieldDefinition(models.Model):
         return f"{self.name} ({self.get_field_type_display()}) — {self.game.title}"
 
 
+class AIUsageLog(models.Model):
+    """Tracks daily AI question usage per user for the free tier limit."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ai_usage_logs',
+    )
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = [('user', 'date')]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.date} — {self.count} questions"
+
+
 class CustomFieldChoice(models.Model):
     """
     Reusable dropdown options for a 'choice' type CustomFieldDefinition.

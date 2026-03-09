@@ -105,6 +105,10 @@
       <!-- Desktop nav -->
       <div class="hidden sm:flex items-center gap-6 text-sm font-medium text-gray-400">
         {% if user.is_authenticated %}
+          <button id="notify-btn" title="Get notified when sessions end"
+            class="hidden text-xs text-gray-500 hover:text-brand-400 transition">
+            🔔 Enable Notifications
+          </button>
           <a href="{% url 'dashboard' %}" class="hover:text-white transition">Dashboard</a>
           <a href="{% url 'game_list' %}" class="hover:text-white transition">Games</a>
           <a href="{% url 'journal_list' %}" class="hover:text-white transition">Journal</a>
@@ -224,16 +228,73 @@
     </div>
   </footer>
 
-  <!-- Service worker registration -->
+  <!-- Service worker + push notifications -->
+  {% if user.is_authenticated %}
+  <script>
+  (function() {
+    const VAPID_PUBLIC_KEY = '{{ VAPID_PUBLIC_KEY }}';
+    const SUBSCRIBE_URL = '{% url "push_subscribe" %}';
+    const UNSUBSCRIBE_URL = '{% url "push_unsubscribe" %}';
+    const CSRF = '{{ csrf_token }}';
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const raw = atob(base64);
+      return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+    }
+
+    async function registerPush() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (!VAPID_PUBLIC_KEY) return;
+
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      window._swReg = reg;
+
+      // Check if already subscribed
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) return; // Already good
+
+      // Show notify button if permission not yet granted
+      if (Notification.permission === 'default') {
+        const btn = document.getElementById('notify-btn');
+        if (btn) btn.classList.remove('hidden');
+      }
+    }
+
+    async function subscribePush() {
+      if (!window._swReg || !VAPID_PUBLIC_KEY) return;
+      try {
+        const sub = await window._swReg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        await fetch(SUBSCRIBE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+          body: JSON.stringify(sub.toJSON()),
+        });
+        const btn = document.getElementById('notify-btn');
+        if (btn) btn.classList.add('hidden');
+      } catch (e) {
+        console.log('Push subscribe failed:', e);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      registerPush();
+      const btn = document.getElementById('notify-btn');
+      if (btn) btn.addEventListener('click', subscribePush);
+    });
+  })();
+  </script>
+  {% else %}
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('SW registered'))
-          .catch(err => console.log('SW failed:', err));
-      });
+      navigator.serviceWorker.register('/sw.js');
     }
   </script>
+  {% endif %}
   <script>
   function convertUTCTimes() {
   document.querySelectorAll('[data-utc]').forEach(function(el) {

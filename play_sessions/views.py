@@ -111,6 +111,16 @@ def session_active(request, pk):
             session.notes = form.cleaned_data.get('notes', '')
             session.end()
             messages.success(request, f"Session ended! {session.duration_display} played.")
+            try:
+                from accounts.push import send_push_notification
+                send_push_notification(
+                    request.user,
+                    title='Session ended — time to journal! ✍️',
+                    body=f'{session.game.title} · {session.duration_display}',
+                    url=f'/sessions/{session.pk}/done/',
+                )
+            except Exception:
+                pass
             return redirect('session_end_prompt', pk=session.pk)
 
     return render(request, 'play_sessions/session_active.html', {

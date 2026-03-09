@@ -19,11 +19,32 @@
       <img src="{{ game.cover_image_url }}" alt="{{ game.title }}"
            class="w-10 h-14 object-cover rounded-lg border border-gray-800 shrink-0" />
     {% endif %}
-    <div>
+    <div class="flex-1">
       <h1 class="text-xl font-bold text-white">{{ game.title }} — AI Assistant</h1>
       <p class="text-gray-500 text-xs mt-0.5">Powered by Claude · Knows your journal & playtime</p>
     </div>
+    {% if ai_limit %}
+      <div id="usage-badge" class="text-xs px-3 py-1.5 rounded-full border
+        {% if ai_uses_today >= ai_limit %}border-red-500 border-opacity-50 bg-red-500 bg-opacity-10 text-red-400
+        {% elif ai_uses_today >= 2 %}border-yellow-500 border-opacity-50 bg-yellow-500 bg-opacity-10 text-yellow-400
+        {% else %}border-gray-700 bg-gray-900 text-gray-500{% endif %}">
+        {{ ai_uses_today }}/{{ ai_limit }} today
+      </div>
+    {% else %}
+      <div class="text-xs px-3 py-1.5 rounded-full border border-brand-500 border-opacity-30 bg-brand-500 bg-opacity-10 text-brand-400">
+        Pro · Unlimited
+      </div>
+    {% endif %}
   </div>
+
+  {% if ai_limit and ai_uses_today >= ai_limit %}
+  <div class="bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-4">
+    <p class="text-yellow-400 text-sm">You've used all {{ ai_limit }} free questions for today. Resets at midnight.</p>
+    <a href="/upgrade/" class="text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg transition shrink-0">
+      Go Pro
+    </a>
+  </div>
+  {% endif %}
 
   <!-- Chat window -->
   <div id="chat-window"
@@ -87,8 +108,24 @@
   const suggestions = document.getElementById('suggestions');
   const chatUrl = "{% url 'ai_chat' game.pk %}";
   const csrfToken = "{{ csrf_token }}";
+  const aiLimit = {{ ai_limit|default:"null" }};
 
   let history = [];
+  let usesToday = {{ ai_uses_today|default:0 }};
+
+  function updateUsageBadge() {
+    const badge = document.getElementById('usage-badge');
+    if (!badge || aiLimit === null) return;
+    badge.textContent = `${usesToday}/${aiLimit} today`;
+    badge.className = badge.className.replace(/border-\S+ bg-\S+ text-\S+/g, '');
+    if (usesToday >= aiLimit) {
+      badge.classList.add('border-red-500', 'border-opacity-50', 'bg-red-500', 'bg-opacity-10', 'text-red-400');
+    } else if (usesToday >= 2) {
+      badge.classList.add('border-yellow-500', 'border-opacity-50', 'bg-yellow-500', 'bg-opacity-10', 'text-yellow-400');
+    } else {
+      badge.classList.add('border-gray-700', 'bg-gray-900', 'text-gray-500');
+    }
+  }
 
   function scrollToBottom() {
     chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -168,6 +205,14 @@
         history.push({ role: 'user', content: message });
         history.push({ role: 'assistant', content: data.reply });
         appendMessage('assistant', data.reply);
+        if (data.remaining !== null && data.remaining !== undefined) {
+          usesToday = aiLimit - data.remaining;
+          updateUsageBadge();
+        }
+      } else if (resp.status === 429 && data.limit_reached) {
+        appendMessage('assistant', data.error);
+        sendBtn.disabled = true;
+        input.placeholder = 'Daily limit reached — resets at midnight';
       } else {
         appendMessage('assistant', data.error || 'Something went wrong. Please try again.');
       }

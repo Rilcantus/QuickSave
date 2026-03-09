@@ -7,7 +7,7 @@ from play_sessions.models import Session
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 def _get_or_create_game(user, game_name):
-    """Find or create a game for a user, fetching cover art if new."""
+    """Find or create a game for a user, fetching cover art only when needed."""
     game = Game.objects.filter(user=user, title__iexact=game_name).first()
     if not game:
         game = Game(user=user, title=game_name)
@@ -15,6 +15,12 @@ def _get_or_create_game(user, game_name):
         if results and results[0]['image']:
             game.cover_image_url = results[0]['image']
         game.save()
+    elif not game.cover_image_url:
+        # Game exists but never got cover art — try once more
+        results = search_games(game_name)
+        if results and results[0]['image']:
+            game.cover_image_url = results[0]['image']
+            game.save(update_fields=['cover_image_url'])
     return game
 
 
@@ -55,6 +61,16 @@ def _handle_presence(user, game_name, source):
         # Not playing — only end session if we own it
         if active_session and active_session.source == source:
             active_session.end()
+            try:
+                from accounts.push import send_push_notification
+                send_push_notification(
+                    user,
+                    title='Session ended — time to journal! ✍️',
+                    body=f'{active_session.game.title} · {active_session.duration_display}',
+                    url=f'/sessions/{active_session.pk}/done/',
+                )
+            except Exception:
+                pass
 
 
 def _schedule_all(model_filter, task_path):

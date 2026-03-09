@@ -204,12 +204,27 @@ def descriptor_delete(request, game_pk, pk):
         'descriptor': descriptor,
     })
 
+AI_FREE_LIMIT = 3
+
+
 @login_required
 def ai_assistant(request, pk):
+    from django.utils import timezone
+    from .models import AIUsageLog
     game = get_object_or_404(Game, pk=pk, user=request.user)
-    if not request.user.is_pro:
-        return render(request, 'games/ai_assistant_upgrade.html', {'game': game})
-    return render(request, 'games/ai_assistant.html', {'game': game})
+    if request.user.is_pro:
+        ai_limit = None
+        ai_uses_today = 0
+    else:
+        today = timezone.now().date()
+        log = AIUsageLog.objects.filter(user=request.user, date=today).first()
+        ai_uses_today = log.count if log else 0
+        ai_limit = AI_FREE_LIMIT
+    return render(request, 'games/ai_assistant.html', {
+        'game': game,
+        'ai_uses_today': ai_uses_today,
+        'ai_limit': ai_limit,
+    })
 
 
 @login_required
@@ -217,10 +232,33 @@ def ai_chat(request, pk):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
 
-    if not request.user.is_pro:
-        return JsonResponse({'error': 'QuickSave Pro required.'}, status=403)
+    from django.utils import timezone
+    from .models import AIUsageLog
+
+    # IP-level rate limit — 60 requests/hour regardless of account
+    try:
+        from ratelimit.utils import is_ratelimited
+        limited = is_ratelimited(request, group='ai_chat', key='ip', rate='60/h', increment=True)
+        if limited:
+            return JsonResponse({'error': 'Too many requests. Please slow down.'}, status=429)
+    except Exception:
+        pass
 
     game = get_object_or_404(Game, pk=pk, user=request.user)
+    today = timezone.now().date()
+
+    # Check daily limit for free users
+    if not request.user.is_pro:
+        log, _ = AIUsageLog.objects.get_or_create(
+            user=request.user, date=today, defaults={'count': 0}
+        )
+        if log.count >= AI_FREE_LIMIT:
+            return JsonResponse({
+                'error': f"You've used all {AI_FREE_LIMIT} free AI questions for today. Upgrade to Pro for unlimited access.",
+                'limit_reached': True,
+            }, status=429)
+    else:
+        log = None
 
     try:
         data = json.loads(request.body)
@@ -238,7 +276,7 @@ def ai_chat(request, pk):
         for m in history
         if isinstance(m, dict) and m.get('role') in ('user', 'assistant')
         and isinstance(m.get('content'), str)
-    ][-20:]  # cap at last 20 turns
+    ][-20:]
 
     try:
         from .ai_assistant import chat
@@ -247,12 +285,28 @@ def ai_chat(request, pk):
         logger.error("AI chat error for game %s: %s", pk, e)
         return JsonResponse({'error': 'Failed to get a response. Please try again.'}, status=500)
 
-    return JsonResponse({'reply': reply})
+    # Increment usage counter for free users
+    remaining = None
+    if not request.user.is_pro and log is not None:
+        AIUsageLog.objects.filter(pk=log.pk).update(count=log.count + 1)
+        remaining = max(0, AI_FREE_LIMIT - (log.count + 1))
+
+    return JsonResponse({'reply': reply, 'remaining': remaining})
 
 
 @login_required
 def rawg_search(request):
+    from ratelimit.decorators import ratelimit
+    from ratelimit.exceptions import Ratelimited
     query = request.GET.get('q', '').strip()
+    # 30 searches per hour per user
+    try:
+        from ratelimit.utils import is_ratelimited
+        limited = is_ratelimited(request, group='rawg_search', key='user', rate='30/h', increment=True)
+        if limited:
+            return JsonResponse({'error': 'Too many searches. Try again in an hour.'}, status=429)
+    except Exception:
+        pass
     results = search_games(query)
     return JsonResponse({'results': results})
 

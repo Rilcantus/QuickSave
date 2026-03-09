@@ -594,3 +594,54 @@ def roblox_poll_now(request):
         else:
             messages.info(request, "Not currently in a Roblox game.")
     return redirect('roblox_settings')
+
+
+# ─── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────
+
+@login_required
+def push_subscribe(request):
+    """Save a browser push subscription for the logged-in user."""
+    import json as _json
+    from django.http import JsonResponse
+    from .models import PushSubscription
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    try:
+        data = _json.loads(request.body)
+        endpoint = data.get('endpoint', '').strip()
+        keys = data.get('keys', {})
+        p256dh = keys.get('p256dh', '').strip()
+        auth = keys.get('auth', '').strip()
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
+
+    if not endpoint or not p256dh or not auth:
+        return JsonResponse({'error': 'Missing fields'}, status=400)
+
+    PushSubscription.objects.update_or_create(
+        endpoint=endpoint,
+        defaults={'user': request.user, 'p256dh': p256dh, 'auth': auth},
+    )
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+def push_unsubscribe(request):
+    """Remove a push subscription."""
+    import json as _json
+    from django.http import JsonResponse
+    from .models import PushSubscription
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    try:
+        data = _json.loads(request.body)
+        endpoint = data.get('endpoint', '').strip()
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
+
+    PushSubscription.objects.filter(user=request.user, endpoint=endpoint).delete()
+    return JsonResponse({'status': 'ok'})
