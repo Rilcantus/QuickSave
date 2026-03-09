@@ -10,7 +10,7 @@
       <img src="{{ game.cover_image_url }}" alt="{{ game.title }}"
            class="w-24 h-32 object-cover rounded-xl border border-gray-800 shrink-0 hidden sm:block" />
     {% endif %}
-    <div class="flex-1">
+    <div class="flex-1 min-w-0">
       <p class="text-gray-500 text-sm mb-1">
         <a href="{% url 'game_list' %}" class="hover:text-brand-400 transition">My Games</a>
         <span class="mx-2">›</span>
@@ -37,24 +37,24 @@
           </span>
         {% endif %}
       </div>
-    </div>
-    <div class="flex gap-2 shrink-0">
-      <a href="{% url 'ai_assistant' game.pk %}"
-        class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-        ✨ AI
-      </a>
-      <a href="{% url 'game_stats' game.pk %}"
-        class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
-        📊 Stats
-      </a>
-      <a href="{% url 'game_edit' game.pk %}"
-         class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
-        Edit
-      </a>
-      <a href="{% url 'game_delete' game.pk %}"
-         class="bg-red-900 hover:bg-red-800 text-red-300 text-sm font-medium px-4 py-2 rounded-lg transition">
-        Delete
-      </a>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <a href="{% url 'ai_assistant' game.pk %}"
+          class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+          ✨ AI
+        </a>
+        <a href="{% url 'game_stats' game.pk %}"
+          class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+          📊 Stats
+        </a>
+        <a href="{% url 'game_edit' game.pk %}"
+           class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+          Edit
+        </a>
+        <a href="{% url 'game_delete' game.pk %}"
+           class="bg-red-900 hover:bg-red-800 text-red-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+          Delete
+        </a>
+      </div>
     </div>
   </div>
 
