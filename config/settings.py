@@ -51,11 +51,13 @@ INSTALLED_APPS = [
     'axes',
     'rest_framework',
     'rest_framework.authtoken',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -166,6 +168,16 @@ MICROSOFT_CLIENT_SECRET = env('MICROSOFT_CLIENT_SECRET', default='')
 MICROSOFT_REDIRECT_URI = env('MICROSOFT_REDIRECT_URI', default='https://www.quicksave.site/accounts/xbox/callback/')
 
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
+
+# CORS — allow desktop app (Electron sends null origin from file://)
+CORS_URLS_REGEX = r'^/api/.*$'
+CORS_ALLOW_ALL_ORIGINS = True          # API is token-protected so this is safe
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'authorization',
+    'content-type',
+    'x-csrftoken',
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
