@@ -210,6 +210,115 @@
     </a>
   </div>
 
+  <!-- Push Notifications -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">Push Notifications</p>
+        <p class="text-gray-500 text-sm" id="push-status-text">Checking…</p>
+      </div>
+      <span class="text-3xl">🔔</span>
+    </div>
+    <button id="settings-notify-btn"
+            class="hidden w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      Enable Notifications
+    </button>
+    <button id="settings-unnotify-btn"
+            class="hidden w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      Disable Notifications
+    </button>
+    <p id="push-blocked-msg" class="hidden text-gray-600 text-sm">
+      Notifications are blocked. Allow them in your browser settings for this site.
+    </p>
+  </div>
+
+  <script>
+  (function() {
+    const VAPID_PUBLIC_KEY = '{{ VAPID_PUBLIC_KEY }}';
+    const SUBSCRIBE_URL = '{% url "push_subscribe" %}';
+    const UNSUBSCRIBE_URL = '{% url "push_unsubscribe" %}';
+    const CSRF = '{{ csrf_token }}';
+
+    const statusText = document.getElementById('push-status-text');
+    const enableBtn  = document.getElementById('settings-notify-btn');
+    const disableBtn = document.getElementById('settings-unnotify-btn');
+    const blockedMsg = document.getElementById('push-blocked-msg');
+
+    function urlBase64ToUint8Array(b64) {
+      const pad = '='.repeat((4 - b64.length % 4) % 4);
+      const b = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+      return Uint8Array.from([...atob(b)].map(c => c.charCodeAt(0)));
+    }
+
+    async function checkStatus() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !VAPID_PUBLIC_KEY) {
+        statusText.textContent = 'Not supported in this browser.';
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        statusText.textContent = 'Blocked by browser settings.';
+        blockedMsg.classList.remove('hidden');
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        statusText.textContent = 'Enabled';
+        statusText.className = 'text-brand-400 text-sm';
+        disableBtn.classList.remove('hidden');
+        enableBtn.classList.add('hidden');
+      } else {
+        statusText.textContent = 'Not enabled';
+        statusText.className = 'text-gray-500 text-sm';
+        enableBtn.classList.remove('hidden');
+        disableBtn.classList.add('hidden');
+      }
+    }
+
+    async function subscribe() {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        await fetch(SUBSCRIBE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+          body: JSON.stringify(sub.toJSON()),
+        });
+        checkStatus();
+      } catch (e) {
+        statusText.textContent = 'Could not enable — check browser permissions.';
+      }
+    }
+
+    async function unsubscribe() {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await fetch(UNSUBSCRIBE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+          await sub.unsubscribe();
+        }
+        checkStatus();
+      } catch (e) {
+        console.log('Unsubscribe failed:', e);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      checkStatus();
+      enableBtn.addEventListener('click', subscribe);
+      disableBtn.addEventListener('click', unsubscribe);
+    });
+  })();
+  </script>
+
   <!-- Data export -->
   <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
     <p class="text-white font-semibold mb-1">Export Your Data</p>
