@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'journal',
     'django_q',
     'axes',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -164,6 +166,15 @@ MICROSOFT_CLIENT_SECRET = env('MICROSOFT_CLIENT_SECRET', default='')
 MICROSOFT_REDIRECT_URI = env('MICROSOFT_REDIRECT_URI', default='https://www.quicksave.site/accounts/xbox/callback/')
 
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 Q_CLUSTER = {
     'name': 'quicksave',

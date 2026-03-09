@@ -19,6 +19,7 @@ admin.site.index_title = 'Disrat Studios — QuickSave'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
     path('sw.js', service_worker, name='service_worker'),
     path('', account_views.landing, name='landing'),
     path('accounts/', include('accounts.urls')),
