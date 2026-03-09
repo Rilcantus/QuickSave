@@ -207,6 +207,8 @@ def descriptor_delete(request, game_pk, pk):
 @login_required
 def ai_assistant(request, pk):
     game = get_object_or_404(Game, pk=pk, user=request.user)
+    if not request.user.is_pro:
+        return render(request, 'games/ai_assistant_upgrade.html', {'game': game})
     return render(request, 'games/ai_assistant.html', {'game': game})
 
 
@@ -214,6 +216,9 @@ def ai_assistant(request, pk):
 def ai_chat(request, pk):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
+
+    if not request.user.is_pro:
+        return JsonResponse({'error': 'QuickSave Pro required.'}, status=403)
 
     game = get_object_or_404(Game, pk=pk, user=request.user)
 

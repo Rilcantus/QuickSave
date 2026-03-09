@@ -38,6 +38,8 @@ class User(AbstractUser):
     roblox_avatar = models.URLField(blank=True)
     roblox_polling_enabled = models.BooleanField(default=False)
 
+    # Subscription
+    is_pro = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
