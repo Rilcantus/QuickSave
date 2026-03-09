@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip install django-axes)"
+      "Bash(pip install django-axes)",
+      "Bash(venv/Scripts/pip install anthropic)",
+      "Bash(node -e \"require\\(''./main.js''\\)\")",
+      "Bash(venv/Scripts/python manage.py check)",
+      "Bash(venv/Scripts/pip install django-cors-headers)",
+      "Bash(python -c \":*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\admin\\Documents\\python_work\\New folder\\QuickSaveDesktop"
     ]
   }
 }

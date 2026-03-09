@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quicksave-v2';
+const CACHE_NAME = 'quicksave-v3';
 
 // ── Push Notifications ────────────────────────────────────────────────────────
 self.addEventListener('push', event => {
