@@ -9,10 +9,16 @@ class CustomFieldValueInline(admin.TabularInline):
 
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
-    list_display = ['game', 'descriptor', 'started_at', 'ended_at', 'duration_display', 'is_active']
-    search_fields = ['game__title']
-    list_filter = ['game']
+    list_display = ['game', 'game_user', 'descriptor', 'source', 'started_at', 'duration_display', 'is_active']
+    search_fields = ['game__title', 'game__user__username']
+    list_filter = ['source', 'game__platform']
+    date_hierarchy = 'started_at'
+    raw_id_fields = ['game', 'descriptor']
     inlines = [CustomFieldValueInline]
+
+    @admin.display(description='User')
+    def game_user(self, obj):
+        return obj.game.user.username
 
 
 @admin.register(CustomFieldValue)

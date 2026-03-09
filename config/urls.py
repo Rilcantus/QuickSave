@@ -13,6 +13,10 @@ def service_worker(request):
     return FileResponse(open(sw_path, 'rb'), content_type='application/javascript')
 
 
+admin.site.site_header = 'QuickSave Admin'
+admin.site.site_title = 'QuickSave'
+admin.site.index_title = 'Disrat Studios — QuickSave'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
