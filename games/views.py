@@ -1,4 +1,5 @@
 import json
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,6 +8,8 @@ from play_sessions.models import Session
 from .rawg import search_games
 from .models import Game, CustomFieldDefinition, Descriptor
 from .forms import GameForm, CustomFieldDefinitionForm
+
+logger = logging.getLogger(__name__)
 
 
 def _safe_json(data):
@@ -232,11 +235,12 @@ def ai_chat(request, pk):
         and isinstance(m.get('content'), str)
     ][-20:]  # cap at last 20 turns
 
-    from .ai_assistant import chat
-    reply = chat(request.user, game, message, clean_history)
-
-    if reply is None:
-        return JsonResponse({'error': 'Failed to get a response. Please try again.'}, status=500)
+    try:
+        from .ai_assistant import chat
+        reply = chat(request.user, game, message, clean_history)
+    except Exception as e:
+        logger.error("AI chat error for game %s: %s", pk, e)
+        return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'reply': reply})
 

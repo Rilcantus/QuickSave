@@ -60,28 +60,22 @@ def chat(user, game, message, history):
     """
     Send a message to Claude with the user's game context.
     history: list of {role, content} dicts (prior turns)
-    Returns the assistant's reply string, or None on error.
+    Returns the assistant's reply string, or raises an exception on error.
     """
     if not getattr(settings, 'ANTHROPIC_API_KEY', ''):
-        logger.warning("ANTHROPIC_API_KEY not set — AI assistant unavailable")
-        return None
+        raise RuntimeError("ANTHROPIC_API_KEY not configured")
 
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    import anthropic
+    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
-        system_prompt = build_system_prompt(user, game)
-        messages = list(history) + [{"role": "user", "content": message}]
+    system_prompt = build_system_prompt(user, game)
+    messages = list(history) + [{"role": "user", "content": message}]
 
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1024,
-            system=system_prompt,
-            messages=messages,
-        )
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        system=system_prompt,
+        messages=messages,
+    )
 
-        return response.content[0].text
-
-    except Exception as e:
-        logger.error("AI assistant error for game %s: %s", game.pk, e)
-        return None
+    return response.content[0].text
