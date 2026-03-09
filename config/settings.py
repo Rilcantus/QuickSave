@@ -206,7 +206,7 @@ if not DEBUG:
     ALLOWED_HOSTS = ['quicksave.site', 'www.quicksave.site', 'web-production-4fa9f.up.railway.app']
 
     # Whitenoise for static files
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
     # Database from environment
     DATABASES['default'] = dj_database_url.config(
