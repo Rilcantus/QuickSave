@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QuickSave — Your Gaming Journal</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💾</text></svg>" />
+  <link rel="icon" type="image/x-icon" href="/static/icons/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -37,7 +38,10 @@
 
   <!-- NAV -->
   <nav class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-transparent transition-all duration-300" id="landing-nav">
-    <a href="/" class="text-brand-400 font-bold text-xl tracking-tight">💾 QuickSave</a>
+    <a href="/" class="flex items-center gap-2 font-bold text-xl tracking-tight text-white">
+      <img src="/static/icons/icon-192.png" alt="QuickSave" class="h-7 w-7 rounded-lg" />
+      QuickSave
+    </a>
     <div class="flex items-center gap-4">
       <a href="/accounts/login/" class="text-gray-400 hover:text-gray-100 text-sm transition">Sign in</a>
       <a href="/accounts/register/" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Get Started</a>
@@ -163,7 +167,10 @@
   <!-- FOOTER -->
   <footer class="border-t border-gray-800 px-6 py-8 max-w-6xl mx-auto">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <span class="text-brand-400 font-bold text-lg">💾 QuickSave</span>
+      <span class="flex items-center gap-2 font-bold text-lg text-white">
+        <img src="/static/icons/icon-192.png" alt="QuickSave" class="h-6 w-6 rounded-lg" />
+        QuickSave
+      </span>
       <div class="flex items-center gap-6">
         <a href="/accounts/login/" class="text-gray-500 hover:text-gray-300 text-sm transition">Sign In</a>
         <a href="/accounts/register/" class="text-gray-500 hover:text-gray-300 text-sm transition">Register</a>
