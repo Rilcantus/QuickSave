@@ -46,6 +46,7 @@
         Quick note <span class="text-gray-600 font-normal">(optional)</span>
       </label>
       <textarea
+        id="session-notes"
         name="notes"
         rows="3"
         placeholder="Any quick notes before you close out?"
@@ -59,6 +60,45 @@
     </form>
   </div>
 
+</div>
+
+<!-- AI Buddy floating button -->
+<button id="ai-bubble"
+  class="fixed bottom-6 right-6 w-14 h-14 bg-brand-500 hover:bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl transition z-50"
+  title="Ask AI Buddy">
+  ✨
+</button>
+
+<!-- AI Buddy chat panel -->
+<div id="ai-panel"
+  class="fixed bottom-24 right-6 w-80 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl z-50 flex flex-col hidden"
+  style="max-height: 420px;">
+
+  <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
+    <div>
+      <p class="text-white text-sm font-semibold">AI Buddy</p>
+      <p class="text-gray-500 text-xs">{{ session.game.title }}</p>
+    </div>
+    <button id="ai-panel-close" class="text-gray-500 hover:text-white transition text-lg leading-none">✕</button>
+  </div>
+
+  <div id="ai-messages"
+    class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+    <div class="bg-gray-800 rounded-xl px-3 py-2">
+      <p class="text-gray-300 text-xs">Hey! Ask me anything about {{ session.game.title }} while you play. Tips, lore, builds — I've got you. Replies can be saved to your session notes.</p>
+    </div>
+  </div>
+
+  <div class="p-3 border-t border-gray-800 shrink-0">
+    <div class="flex gap-2">
+      <input id="ai-input" type="text" placeholder="Ask anything..."
+        class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 transition" />
+      <button id="ai-send"
+        class="bg-brand-500 hover:bg-brand-600 disabled:opacity-40 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shrink-0">
+        Send
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -98,4 +138,107 @@
 
   })();
 </script>
+
+<script>
+(function() {
+  const bubble = document.getElementById('ai-bubble');
+  const panel = document.getElementById('ai-panel');
+  const closeBtn = document.getElementById('ai-panel-close');
+  const messages = document.getElementById('ai-messages');
+  const input = document.getElementById('ai-input');
+  const sendBtn = document.getElementById('ai-send');
+  const notesEl = document.getElementById('session-notes');
+  const chatUrl = "{% url 'ai_chat' session.game.pk %}";
+  const csrfToken = "{{ csrf_token }}";
+  let history = [];
+
+  bubble.addEventListener('click', () => {
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) input.focus();
+  });
+  closeBtn.addEventListener('click', () => panel.classList.add('hidden'));
+
+  function scrollMessages() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function addMessage(role, text) {
+    const isUser = role === 'user';
+    const wrap = document.createElement('div');
+    wrap.className = isUser ? 'flex justify-end' : 'flex flex-col gap-1';
+
+    const bbl = document.createElement('div');
+    bbl.className = isUser
+      ? 'bg-brand-500 bg-opacity-20 border border-brand-500 border-opacity-20 rounded-xl px-3 py-2 max-w-xs'
+      : 'bg-gray-800 rounded-xl px-3 py-2 max-w-xs';
+    const p = document.createElement('p');
+    p.className = 'text-xs ' + (isUser ? 'text-white' : 'text-gray-300');
+    p.style.whiteSpace = 'pre-wrap';
+    p.textContent = text;
+    bbl.appendChild(p);
+    wrap.appendChild(bbl);
+
+    if (!isUser) {
+      const btn = document.createElement('button');
+      btn.className = 'text-xs text-brand-400 hover:text-brand-300 transition text-left pl-1';
+      btn.textContent = '+ Add to notes';
+      btn.addEventListener('click', () => {
+        const sep = notesEl.value ? '\n\n' : '';
+        notesEl.value += sep + '[AI] ' + text;
+        btn.textContent = '✓ Added';
+        btn.disabled = true;
+      });
+      wrap.appendChild(btn);
+    }
+
+    messages.appendChild(wrap);
+    scrollMessages();
+  }
+
+  function addTyping() {
+    const wrap = document.createElement('div');
+    wrap.id = 'ai-typing';
+    wrap.className = 'flex';
+    wrap.innerHTML = '<div class="bg-gray-800 rounded-xl px-3 py-2"><span class="flex gap-1 items-center h-4"><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:0ms"></span><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:150ms"></span><span class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay:300ms"></span></span></div>';
+    messages.appendChild(wrap);
+    scrollMessages();
+    return wrap;
+  }
+
+  async function send(msg) {
+    if (!msg.trim()) return;
+    addMessage('user', msg);
+    input.value = '';
+    sendBtn.disabled = true;
+    const typing = addTyping();
+    try {
+      const resp = await fetch(chatUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ message: msg, history }),
+      });
+      const data = await resp.json();
+      typing.remove();
+      const reply = resp.ok && data.reply ? data.reply : (data.error || 'Something went wrong.');
+      if (resp.ok && data.reply) {
+        history.push({ role: 'user', content: msg });
+        history.push({ role: 'assistant', content: reply });
+      }
+      addMessage('assistant', reply);
+    } catch {
+      typing.remove();
+      addMessage('assistant', 'Network error. Please try again.');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', () => send(input.value));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input.value); }
+  });
+})();
+</script>
+
 {% endblock %}
