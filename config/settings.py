@@ -163,6 +163,8 @@ MICROSOFT_CLIENT_ID = env('MICROSOFT_CLIENT_ID', default='')
 MICROSOFT_CLIENT_SECRET = env('MICROSOFT_CLIENT_SECRET', default='')
 MICROSOFT_REDIRECT_URI = env('MICROSOFT_REDIRECT_URI', default='https://www.quicksave.site/accounts/xbox/callback/')
 
+ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')
+
 Q_CLUSTER = {
     'name': 'quicksave',
     'workers': 2,
