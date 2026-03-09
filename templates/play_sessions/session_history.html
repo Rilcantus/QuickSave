@@ -81,7 +81,12 @@
   {% else %}
     <div class="text-center py-20 bg-gray-900 border border-gray-800 rounded-2xl">
       <p class="text-4xl mb-3">🕹️</p>
-      <p class="text-gray-400">No sessions yet.</p>
+      <p class="text-lg font-medium text-gray-400 mb-1">No sessions yet.</p>
+      <p class="text-gray-500 text-sm mb-4">Head to your game library to start your first session.</p>
+      <a href="{% url 'game_list' %}"
+         class="inline-block bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2 rounded-lg transition text-sm">
+        Go to My Games
+      </a>
     </div>
   {% endif %}
 

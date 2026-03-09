@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QuickSave — Your Gaming Journal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💾</text></svg>" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,21 +17,27 @@
         extend: {
           colors: {
             brand: {
+              50:  '#f0fdf4',
+              100: '#dcfce7',
               400: '#4ade80',
               500: '#22c55e',
               600: '#16a34a',
+              700: '#15803d',
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-gray-950 text-gray-100 antialiased">
+<body class="bg-gray-950 text-gray-100 antialiased font-sans">
 
   <!-- NAV -->
   <nav class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-transparent transition-all duration-300" id="landing-nav">
-    <a href="/" class="text-brand-400 font-bold text-xl tracking-tight">QuickSave</a>
+    <a href="/" class="text-brand-400 font-bold text-xl tracking-tight">💾 QuickSave</a>
     <div class="flex items-center gap-4">
       <a href="/accounts/login/" class="text-gray-400 hover:text-gray-100 text-sm transition">Sign in</a>
       <a href="/accounts/register/" class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">Get Started</a>
@@ -34,17 +46,17 @@
 
   <!-- HERO -->
   <section class="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 relative overflow-hidden">
-    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
-      <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
+      <span class="w-1.5 h-1.5 bg-brand-400 rounded-full animate-pulse"></span>
       Early Access — Free to use
     </div>
     <h1 class="text-5xl md:text-7xl font-bold tracking-tight leading-none text-white max-w-3xl">
-      Your games deserve<br><span class="text-green-400">to be remembered.</span>
+      Your games deserve<br><span class="text-brand-400">to be remembered.</span>
     </h1>
-    <p class="mt-6 text-gray-400 text-lg max-w-lg leading-relaxed">Track sessions, journal your runs, and understand how you actually play — with automatic Steam detection.</p>
+    <p class="mt-6 text-gray-400 text-lg max-w-lg leading-relaxed">Track sessions, journal your runs, and understand how you actually play — with automatic tracking across Steam, Xbox, PlayStation, and Discord.</p>
     <div class="mt-10 flex items-center gap-4 flex-wrap justify-center">
-      <a href="/accounts/register/" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-3.5 rounded-xl transition text-base">Start for free →</a>
+      <a href="/accounts/register/" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-8 py-3.5 rounded-xl transition text-base">Start for free →</a>
       <a href="/accounts/login/" class="text-gray-400 hover:text-gray-200 text-sm transition">Already have an account?</a>
     </div>
     <p class="mt-4 text-gray-600 text-xs">No credit card required</p>
@@ -53,14 +65,14 @@
   <!-- FEATURES -->
   <section class="py-24 px-6 max-w-6xl mx-auto">
     <div class="text-center mb-16">
-      <p class="text-green-400 text-xs font-semibold uppercase tracking-widest mb-3">Features</p>
+      <p class="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Features</p>
       <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Everything you need to track your journey.</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition">
         <div class="text-2xl mb-4">⏱</div>
         <h3 class="text-white font-semibold text-lg mb-2">Session Tracking</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Start a session with one click. QuickSave logs your playtime and progress — or let Steam do it automatically.</p>
+        <p class="text-gray-400 text-sm leading-relaxed">Start a session with one click. QuickSave logs your playtime and progress — or let your platform do it automatically.</p>
       </div>
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition">
         <div class="text-2xl mb-4">📓</div>
@@ -74,8 +86,8 @@
       </div>
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition">
         <div class="text-2xl mb-4">🤖</div>
-        <h3 class="text-white font-semibold text-lg mb-2">Steam Auto-Tracking</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Connect your Steam account and sessions start and end automatically when you launch and close a game.</p>
+        <h3 class="text-white font-semibold text-lg mb-2">Auto-Tracking</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">Connect Steam, Xbox, PlayStation, or Discord and sessions start and end automatically when you play.</p>
       </div>
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition">
         <div class="text-2xl mb-4">📊</div>
@@ -95,23 +107,28 @@
   <!-- ROADMAP -->
   <section class="py-24 px-6 max-w-6xl mx-auto">
     <div class="text-center mb-16">
-      <p class="text-green-400 text-xs font-semibold uppercase tracking-widest mb-3">Roadmap</p>
+      <p class="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-3">Roadmap</p>
       <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">What's coming next.</h2>
       <p class="text-gray-400 mt-3 text-sm">QuickSave is actively being built. Here's what's live and what's on the way.</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
+      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Steam Auto-Tracking</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Sessions start and stop automatically when you play on Steam.</p>
       </div>
-      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
+      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
+        <h3 class="text-white font-semibold mb-2">Xbox, PSN & Discord</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">Auto-tracking across all major platforms — connect once and let QuickSave handle the rest.</p>
+      </div>
+      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Journal & Run Tracking</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Full journaling with run labels, mood tracking, and session notes.</p>
       </div>
-      <div class="bg-green-500/5 border border-green-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-green-500/15 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Live</span>
+      <div class="bg-brand-500/5 border border-brand-500/20 rounded-2xl p-6">
+        <span class="inline-flex items-center gap-1.5 bg-brand-500/15 text-brand-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-brand-400 rounded-full"></span> Live</span>
         <h3 class="text-white font-semibold mb-2">Stats & Charts</h3>
         <p class="text-gray-400 text-sm leading-relaxed">Playtime trends and session history with beautiful visualizations.</p>
       </div>
@@ -119,11 +136,6 @@
         <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span> Coming Soon</span>
         <h3 class="text-white font-semibold mb-2">Desktop Companion App</h3>
         <p class="text-gray-400 text-sm leading-relaxed">A lightweight system tray app for richer auto-tracking including Discord RPC.</p>
-      </div>
-      <div class="bg-gray-900 border border-yellow-500/20 rounded-2xl p-6">
-        <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 text-xs font-medium px-2.5 py-1 rounded-full mb-4"><span class="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span> Coming Soon</span>
-        <h3 class="text-white font-semibold mb-2">Xbox & PlayStation</h3>
-        <p class="text-gray-400 text-sm leading-relaxed">Cross-platform tracking beyond Steam via the desktop companion app.</p>
       </div>
       <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
         <span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-500 text-xs font-medium px-2.5 py-1 rounded-full mb-4">Planned</span>
@@ -142,16 +154,16 @@
 
   <!-- CTA -->
   <section class="py-24 px-6 text-center relative overflow-hidden">
-    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-64 bg-green-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
-    <h2 class="text-4xl md:text-5xl font-bold text-white tracking-tight max-w-xl mx-auto leading-tight">Start tracking your <span class="text-green-400">gaming story.</span></h2>
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-64 bg-brand-500 opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+    <h2 class="text-4xl md:text-5xl font-bold text-white tracking-tight max-w-xl mx-auto leading-tight">Start tracking your <span class="text-brand-400">gaming story.</span></h2>
     <p class="text-gray-400 mt-4 mb-10 max-w-sm mx-auto">Free to use. No credit card. Just your games and your journal.</p>
-    <a href="/accounts/register/" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-10 py-4 rounded-xl transition text-base inline-block">Create your account →</a>
+    <a href="/accounts/register/" class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-10 py-4 rounded-xl transition text-base inline-block">Create your account →</a>
   </section>
 
   <!-- FOOTER -->
   <footer class="border-t border-gray-800 px-6 py-8 max-w-6xl mx-auto">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <span class="text-green-400 font-bold text-lg">QuickSave</span>
+      <span class="text-brand-400 font-bold text-lg">💾 QuickSave</span>
       <div class="flex items-center gap-6">
         <a href="/accounts/login/" class="text-gray-500 hover:text-gray-300 text-sm transition">Sign In</a>
         <a href="/accounts/register/" class="text-gray-500 hover:text-gray-300 text-sm transition">Register</a>
@@ -160,9 +172,9 @@
       <span class="text-gray-500 text-xs">© 2025 Disrat Studios LLC</span>
     </div>
     <div class="flex justify-center gap-6 mt-4">
-      <a href="/legal/privacy/" class="text-gray-600 hover:text-gray-400 text-xs transition">Privacy Policy</a>
-      <a href="/legal/terms/" class="text-gray-600 hover:text-gray-400 text-xs transition">Terms of Service</a>
-      <a href="/legal/dmca/" class="text-gray-600 hover:text-gray-400 text-xs transition">DMCA</a>
+      <a href="/legal/privacy/" class="text-gray-500 hover:text-gray-300 text-xs transition">Privacy Policy</a>
+      <a href="/legal/terms/" class="text-gray-500 hover:text-gray-300 text-xs transition">Terms of Service</a>
+      <a href="/legal/dmca/" class="text-gray-500 hover:text-gray-300 text-xs transition">DMCA</a>
     </div>
   </footer>
 

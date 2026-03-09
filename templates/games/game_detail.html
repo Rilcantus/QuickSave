@@ -156,9 +156,13 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="text-center py-12 text-gray-600 bg-gray-900 rounded-xl border border-gray-800">
+    <div class="text-center py-12 bg-gray-900 rounded-xl border border-gray-800">
       <p class="text-3xl mb-3">🕹️</p>
-      <p class="text-gray-400">No sessions yet. Start playing!</p>
+      <p class="text-gray-400 mb-3">No sessions yet.</p>
+      <a href="{% url 'session_start' game.pk %}"
+         class="inline-block bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2 rounded-lg transition text-sm">
+        ▶ Start a Session
+      </a>
     </div>
   {% endif %}
 
