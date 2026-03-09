@@ -257,16 +257,19 @@ document.addEventListener('DOMContentLoaded', convertUTCTimes);
 // Run after every HTMX swap
 document.addEventListener('htmx:afterSwap', convertUTCTimes);
 
-// Loading bar
-const loadingBar = document.getElementById('loading-bar');
-document.addEventListener('htmx:beforeRequest', () => {
-  loadingBar.classList.remove('done');
-  loadingBar.classList.add('loading');
-});
-document.addEventListener('htmx:afterRequest', () => {
-  loadingBar.classList.remove('loading');
-  loadingBar.classList.add('done');
-});
+// Loading bar (guard prevents redeclaration on hx-boost page swaps)
+if (!window._qsLoadingBarInit) {
+  window._qsLoadingBarInit = true;
+  const loadingBar = document.getElementById('loading-bar');
+  document.addEventListener('htmx:beforeRequest', () => {
+    loadingBar.classList.remove('done');
+    loadingBar.classList.add('loading');
+  });
+  document.addEventListener('htmx:afterRequest', () => {
+    loadingBar.classList.remove('loading');
+    loadingBar.classList.add('done');
+  });
+}
 
 // Sync button loading state
 document.addEventListener('DOMContentLoaded', () => {
