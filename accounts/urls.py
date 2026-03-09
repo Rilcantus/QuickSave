@@ -31,6 +31,11 @@ urlpatterns = [
     path('settings/psn/disconnect/', views.psn_disconnect, name='psn_disconnect'),
     path('settings/psn/toggle/', views.psn_toggle_polling, name='psn_toggle_polling'),
     path('settings/psn/poll/', views.psn_poll_now, name='psn_poll_now'),
+    path('settings/roblox/', views.roblox_settings, name='roblox_settings'),
+    path('settings/roblox/connect/', views.roblox_connect, name='roblox_connect'),
+    path('settings/roblox/disconnect/', views.roblox_disconnect, name='roblox_disconnect'),
+    path('settings/roblox/toggle/', views.roblox_toggle_polling, name='roblox_toggle_polling'),
+    path('settings/roblox/poll/', views.roblox_poll_now, name='roblox_poll_now'),
     path('sync-all/', views.sync_all, name='sync_all'),
     path('settings/export/', views.export_data, name='export_data'),
 ]

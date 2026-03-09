@@ -14,6 +14,7 @@ class Session(models.Model):
     SOURCE_XBOX = 'xbox'
     SOURCE_DISCORD = 'discord'
     SOURCE_PSN = 'psn'
+    SOURCE_ROBLOX = 'roblox'
 
     SOURCE_CHOICES = [
         (SOURCE_MANUAL, 'Manual'),
@@ -21,6 +22,7 @@ class Session(models.Model):
         (SOURCE_XBOX, 'Xbox'),
         (SOURCE_DISCORD, 'Discord'),
         (SOURCE_PSN, 'PSN'),
+        (SOURCE_ROBLOX, 'Roblox'),
     ]
 
     game = models.ForeignKey(

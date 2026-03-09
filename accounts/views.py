@@ -54,6 +54,7 @@ def onboarding(request):
         user.xbox_id,
         user.psn_username,
         user.discord_id,
+        user.roblox_username,
     ])
     if has_game and has_platform:
         return redirect('dashboard')
@@ -423,6 +424,7 @@ def sync_all(request):
     from .tasks import (
         poll_steam_for_user, poll_xbox_for_user,
         poll_psn_for_user, poll_discord_for_user,
+        poll_roblox_for_user,
     )
 
     active = Session.objects.filter(
@@ -442,6 +444,8 @@ def sync_all(request):
         polls['PSN'] = poll_psn_for_user
     if u.discord_id and u.discord_polling_enabled:
         polls['Discord'] = poll_discord_for_user
+    if u.roblox_user_id and u.roblox_polling_enabled:
+        polls['Roblox'] = poll_roblox_for_user
 
     if not polls:
         messages.info(request, "No platforms connected with auto-tracking enabled.")
@@ -526,3 +530,67 @@ def export_data(request):
     )
     response['Content-Disposition'] = f'attachment; filename="quicksave-export-{user.username}.json"'
     return response
+
+
+# ─── ROBLOX ───────────────────────────────────────────────────────────────────
+
+@login_required
+def roblox_settings(request):
+    return render(request, 'accounts/roblox_settings.html')
+
+
+@login_required
+def roblox_connect(request):
+    if request.method == 'POST':
+        from .roblox_api import get_roblox_profile
+        roblox_username = request.POST.get('roblox_username', '').strip()
+        if not roblox_username:
+            messages.error(request, "Please enter a Roblox username.")
+            return redirect('roblox_settings')
+
+        profile = get_roblox_profile(roblox_username)
+        if not profile:
+            messages.error(request, "Roblox username not found. Make sure your username is spelled correctly and your profile is not banned.")
+            return redirect('roblox_settings')
+
+        request.user.roblox_username = profile['username']
+        request.user.roblox_user_id = profile['id']
+        request.user.roblox_avatar = profile.get('avatar', '')
+        request.user.roblox_polling_enabled = True
+        request.user.save()
+
+        from .cron import setup_roblox_polling_schedule
+        setup_roblox_polling_schedule()
+        messages.success(request, f"Connected as {profile['username']}!")
+    return redirect('roblox_settings')
+
+
+@login_required
+def roblox_disconnect(request):
+    if request.method == 'POST':
+        _disconnect_platform(request.user, {
+            'roblox_username': '', 'roblox_user_id': '',
+            'roblox_avatar': '', 'roblox_polling_enabled': False,
+        })
+        messages.success(request, "Roblox account disconnected.")
+    return redirect('account_settings')
+
+
+@login_required
+def roblox_toggle_polling(request):
+    if request.method == 'POST':
+        status = _toggle_polling(request.user, 'roblox_polling_enabled')
+        messages.success(request, f"Roblox auto-tracking {status}.")
+    return redirect('roblox_settings')
+
+
+@login_required
+def roblox_poll_now(request):
+    if request.method == 'POST' and request.user.roblox_user_id:
+        from .roblox_api import get_currently_playing
+        result = get_currently_playing(request.user.roblox_user_id)
+        if result:
+            messages.success(request, f"Currently playing: {result['name']}")
+        else:
+            messages.info(request, "Not currently in a Roblox game.")
+    return redirect('roblox_settings')

@@ -148,6 +148,37 @@
     </a>
   </div>
 
+  <!-- Roblox integration -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-white font-semibold">Roblox</p>
+        <p class="text-gray-500 text-sm">
+          {% if request.user.roblox_username %}
+            Connected as {{ request.user.roblox_username }}
+            {% if request.user.roblox_polling_enabled %}
+              · <span class="text-brand-400">Auto-tracking on</span>
+            {% else %}
+              · <span class="text-gray-600">Paused</span>
+            {% endif %}
+          {% else %}
+            Auto-track your Roblox sessions
+          {% endif %}
+        </p>
+      </div>
+      {% if request.user.roblox_avatar %}
+        <img src="{{ request.user.roblox_avatar }}" alt="Roblox"
+             class="w-10 h-10 rounded-full border border-gray-700" />
+      {% else %}
+        <span class="text-3xl">🟥</span>
+      {% endif %}
+    </div>
+    <a href="{% url 'roblox_settings' %}"
+       class="block w-full text-center bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition text-sm">
+      {% if request.user.roblox_username %}Manage Roblox{% else %}Connect Roblox{% endif %}
+    </a>
+  </div>
+
   <!-- Discord integration -->
   <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
     <div class="flex items-center justify-between mb-4">

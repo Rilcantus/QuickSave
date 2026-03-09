@@ -171,3 +171,27 @@ def schedule_psn_polling():
         User.objects.filter(psn_polling_enabled=True).exclude(psn_username=''),
         'accounts.tasks.poll_psn_for_user'
     )
+
+
+# ─── ROBLOX ───────────────────────────────────────────────────────────────────
+
+def poll_roblox_for_user(user_id):
+    from accounts.models import User
+    from accounts.roblox_api import get_currently_playing
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return
+    if not user.roblox_user_id or not user.roblox_polling_enabled:
+        return
+
+    result = get_currently_playing(user.roblox_user_id)
+    _handle_presence(user, result['name'] if result else None, Session.SOURCE_ROBLOX)
+
+
+def schedule_roblox_polling():
+    from accounts.models import User
+    _schedule_all(
+        User.objects.filter(roblox_polling_enabled=True).exclude(roblox_user_id=''),
+        'accounts.tasks.poll_roblox_for_user'
+    )

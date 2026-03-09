@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Roblox Settings — QuickSave{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto mt-6">
+
+  <p class="text-gray-500 text-sm mb-6">
+    <a href="{% url 'account_settings' %}" class="hover:text-brand-400 transition">Account Settings</a>
+    <span class="mx-2">›</span> Roblox
+  </p>
+
+  <h1 class="text-2xl font-bold text-white mb-8">Roblox</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 px-4 py-3 rounded-lg text-sm
+        {% if message.tags == 'error' %}bg-red-900 text-red-300
+        {% else %}bg-brand-500 bg-opacity-20 text-brand-400{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if user.roblox_username %}
+    <!-- Connected state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+      <div class="flex items-center gap-4 mb-6">
+        {% if user.roblox_avatar %}
+          <img src="{{ user.roblox_avatar }}" class="w-14 h-14 rounded-full border border-gray-700" />
+        {% else %}
+          <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl">🟥</div>
+        {% endif %}
+        <div>
+          <p class="text-white font-semibold text-lg">{{ user.roblox_username }}</p>
+          <p class="text-gray-500 text-sm">Roblox</p>
+        </div>
+      </div>
+
+      <!-- Auto-tracking toggle -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Auto-tracking</p>
+          <p class="text-gray-500 text-sm mt-0.5">Automatically track Roblox game sessions</p>
+          <p class="text-gray-600 text-xs mt-1">Detects the game you're currently playing on Roblox</p>
+        </div>
+        <form method="POST" action="{% url 'roblox_toggle_polling' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="relative inline-flex h-6 w-11 items-center rounded-full transition
+              {% if user.roblox_polling_enabled %}bg-brand-500{% else %}bg-gray-700{% endif %}">
+            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition
+              {% if user.roblox_polling_enabled %}translate-x-6{% else %}translate-x-1{% endif %}">
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Poll now -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Check Now</p>
+          <p class="text-gray-500 text-sm mt-0.5">Manually check what you're playing</p>
+        </div>
+        <form method="POST" action="{% url 'roblox_poll_now' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="bg-gray-800 hover:bg-brand-500 hover:text-white text-gray-300 text-sm px-4 py-2 rounded-lg transition">
+            Check Now
+          </button>
+        </form>
+      </div>
+
+      <!-- Disconnect -->
+      <div class="flex items-center justify-between py-4 border-t border-gray-800">
+        <div>
+          <p class="text-white font-medium">Disconnect</p>
+          <p class="text-gray-500 text-sm mt-0.5">Remove your Roblox account from QuickSave</p>
+        </div>
+        <form method="POST" action="{% url 'roblox_disconnect' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="bg-red-900 hover:bg-red-800 text-red-300 text-sm px-4 py-2 rounded-lg transition">
+            Disconnect
+          </button>
+        </form>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- Connect state -->
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+      <p class="text-4xl mb-4 text-center">🟥</p>
+      <h2 class="text-white font-semibold text-center mb-2">Connect Roblox</h2>
+      <p class="text-gray-500 text-sm text-center mb-6">
+        Enter your Roblox username to enable auto-tracking. No login required — QuickSave
+        reads your public presence to detect which game you're playing.
+      </p>
+
+      <form method="POST" action="{% url 'roblox_connect' %}">
+        {% csrf_token %}
+        <label class="block text-sm font-medium text-gray-300 mb-2">Roblox Username</label>
+        <input
+          type="text"
+          name="roblox_username"
+          placeholder="YourRobloxUsername"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition mb-4"
+          required
+        />
+        <button type="submit"
+          class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition">
+          Connect Roblox
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

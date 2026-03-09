@@ -32,6 +32,12 @@ class User(AbstractUser):
     psn_avatar = models.URLField(blank=True)
     psn_polling_enabled = models.BooleanField(default=False)
 
+    # Roblox integration
+    roblox_username = models.CharField(max_length=100, blank=True)
+    roblox_user_id = models.CharField(max_length=50, blank=True)
+    roblox_avatar = models.URLField(blank=True)
+    roblox_polling_enabled = models.BooleanField(default=False)
+
 
     def __str__(self):
         return self.username

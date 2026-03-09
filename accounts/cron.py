@@ -3,6 +3,7 @@ _SCHEDULES = [
     ('Discord Polling', 'accounts.tasks.schedule_discord_polling'),
     ('Xbox Polling',    'accounts.tasks.schedule_xbox_polling'),
     ('PSN Polling',     'accounts.tasks.schedule_psn_polling'),
+    ('Roblox Polling',  'accounts.tasks.schedule_roblox_polling'),
 ]
 
 
@@ -31,4 +32,7 @@ def setup_xbox_polling_schedule():
     setup_all_polling_schedules()
 
 def setup_psn_polling_schedule():
+    setup_all_polling_schedules()
+
+def setup_roblox_polling_schedule():
     setup_all_polling_schedules()
