@@ -143,12 +143,12 @@ def steam_connect(request):
 
         steam_id = steam_input if (steam_input.isdigit() and len(steam_input) == 17) else resolve_steam_id(steam_input)
         if not steam_id:
-            messages.error(request, "Couldn't find that Steam account. Try your 17-digit Steam ID instead.")
+            messages.error(request, "Couldn't find that Steam account. Try entering your 17-digit Steam ID (find it at steamid.io) or make sure your profile is set to Public.")
             return redirect('steam_settings')
 
         player = get_player_summary(steam_id)
         if not player:
-            messages.error(request, "Couldn't connect to Steam. Check your ID and try again.")
+            messages.error(request, "Found your Steam ID but couldn't load your profile. Make sure your Steam profile and game details are set to Public in Steam → Settings → Privacy.")
             return redirect('steam_settings')
 
         request.user.steam_id = steam_id
@@ -213,18 +213,18 @@ def discord_callback(request):
     code = request.GET.get('code')
     error = request.GET.get('error')
     if error or not code:
-        messages.error(request, f"Discord error: {error} — {request.GET.get('error_description', '')}")
-        return redirect('account_settings')
+        messages.error(request, f"Discord authorization was cancelled or failed ({error}). Please try connecting again.")
+        return redirect('discord_settings')
 
     tokens = exchange_code(code)
     if not tokens or 'access_token' not in tokens:
-        messages.error(request, "Failed to connect Discord. Please try again.")
-        return redirect('account_settings')
+        messages.error(request, "Failed to connect Discord — the authorization code expired. Please try connecting again.")
+        return redirect('discord_settings')
 
     user_data = get_current_user(tokens['access_token'])
     if not user_data:
-        messages.error(request, "Failed to get Discord profile.")
-        return redirect('account_settings')
+        messages.error(request, "Connected to Discord but couldn't load your profile. Please try again.")
+        return redirect('discord_settings')
 
     avatar_hash = user_data.get('avatar', '')
     request.user.discord_id = user_data.get('id', '')
@@ -283,23 +283,23 @@ def xbox_callback(request):
     code = request.GET.get('code')
     error = request.GET.get('error')
     if error or not code:
-        messages.error(request, f"Xbox error: {error} — {request.GET.get('error_description', '')}")
-        return redirect('account_settings')
+        messages.error(request, f"Xbox authorization was cancelled or failed ({error}). Please try connecting again.")
+        return redirect('xbox_settings')
 
     tokens = exchange_code(code)
     if not tokens or 'access_token' not in tokens:
-        messages.error(request, "Failed to connect Xbox. Please try again.")
-        return redirect('account_settings')
+        messages.error(request, "Failed to connect Xbox — the authorization code expired. Please try connecting again.")
+        return redirect('xbox_settings')
 
     xsts_token, uhs = get_xsts_token(tokens['access_token'])
     if not xsts_token:
-        messages.error(request, "Failed to authenticate with Xbox Live.")
-        return redirect('account_settings')
+        messages.error(request, "Failed to authenticate with Xbox Live. Make sure your Microsoft account has an active Xbox profile and try again.")
+        return redirect('xbox_settings')
 
     profile = get_xbox_profile(xsts_token, uhs)
     if not profile:
-        messages.error(request, "Failed to get Xbox profile.")
-        return redirect('account_settings')
+        messages.error(request, "Connected to Xbox Live but couldn't load your profile. Please try reconnecting.")
+        return redirect('xbox_settings')
 
     request.user.xbox_id = profile.get('xuid', '')
     request.user.xbox_gamertag = profile.get('gamertag', '')
@@ -376,7 +376,7 @@ def psn_connect(request):
                 setup_psn_polling_schedule()
                 messages.success(request, f"Connected as {profile['username']}!")
             else:
-                messages.error(request, "PSN username not found or profile is private.")
+                messages.error(request, "PSN username not found or profile is private. Make sure your PSN Online ID is correct and your profile is set to Public in PlayStation Network → Privacy Settings.")
     return redirect('psn_settings')
 
 
