@@ -250,6 +250,26 @@
       return Uint8Array.from([...atob(b)].map(c => c.charCodeAt(0)));
     }
 
+    async function getSwReg() {
+      // Try existing registration first, fall back to registering
+      let reg = await navigator.serviceWorker.getRegistration('/');
+      if (!reg) reg = await navigator.serviceWorker.register('/sw.js');
+      // Wait up to 3s for it to become active
+      if (!reg.active) {
+        await new Promise((resolve) => {
+          const timeout = setTimeout(resolve, 3000);
+          reg.addEventListener('updatefound', () => {
+            const sw = reg.installing;
+            sw && sw.addEventListener('statechange', () => {
+              if (sw.state === 'activated') { clearTimeout(timeout); resolve(); }
+            });
+          });
+          if (reg.active) { clearTimeout(timeout); resolve(); }
+        });
+      }
+      return reg;
+    }
+
     async function checkStatus() {
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !VAPID_PUBLIC_KEY) {
         statusText.textContent = 'Not supported in this browser.';
@@ -260,24 +280,28 @@
         blockedMsg.classList.remove('hidden');
         return;
       }
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if (sub) {
-        statusText.textContent = 'Enabled';
-        statusText.className = 'text-brand-400 text-sm';
-        disableBtn.classList.remove('hidden');
-        enableBtn.classList.add('hidden');
-      } else {
-        statusText.textContent = 'Not enabled';
-        statusText.className = 'text-gray-500 text-sm';
-        enableBtn.classList.remove('hidden');
-        disableBtn.classList.add('hidden');
+      try {
+        const reg = await getSwReg();
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          statusText.textContent = 'Enabled';
+          statusText.className = 'text-brand-400 text-sm';
+          disableBtn.classList.remove('hidden');
+          enableBtn.classList.add('hidden');
+        } else {
+          statusText.textContent = 'Not enabled';
+          statusText.className = 'text-gray-500 text-sm';
+          enableBtn.classList.remove('hidden');
+          disableBtn.classList.add('hidden');
+        }
+      } catch (e) {
+        statusText.textContent = 'Not supported in this browser.';
       }
     }
 
     async function subscribe() {
       try {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await getSwReg();
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
@@ -295,7 +319,7 @@
 
     async function unsubscribe() {
       try {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await getSwReg();
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
           await fetch(UNSUBSCRIBE_URL, {
