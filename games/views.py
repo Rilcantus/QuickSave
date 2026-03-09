@@ -240,7 +240,7 @@ def ai_chat(request, pk):
         reply = chat(request.user, game, message, clean_history)
     except Exception as e:
         logger.error("AI chat error for game %s: %s", pk, e)
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Failed to get a response. Please try again.'}, status=500)
 
     return JsonResponse({'reply': reply})
 
