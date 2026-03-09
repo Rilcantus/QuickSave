@@ -25,7 +25,7 @@
     <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
       <div class="flex items-center gap-4 mb-6">
         {% if user.psn_avatar %}
-          <img src="{{ user.psn_avatar }}" class="w-14 h-14 rounded-full border border-gray-700" />
+          <img src="{{ user.psn_avatar_url }}" class="w-14 h-14 rounded-full border border-gray-700" />
         {% else %}
           <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl">🎮</div>
         {% endif %}

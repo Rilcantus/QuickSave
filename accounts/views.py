@@ -370,7 +370,7 @@ def psn_connect(request):
             if profile:
                 request.user.psn_username = profile['username']
                 request.user.psn_account_id = profile['id']
-                request.user.psn_avatar = profile.get('avatar', '')
+                request.user.psn_avatar = profile.get('avatar', '').replace('http://', 'https://', 1)
                 request.user.psn_polling_enabled = True
                 request.user.save()
                 from .cron import setup_psn_polling_schedule

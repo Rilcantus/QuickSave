@@ -136,7 +136,7 @@
         </p>
       </div>
       {% if request.user.psn_avatar %}
-        <img src="{{ request.user.psn_avatar }}" alt="PSN"
+        <img src="{{ request.user.psn_avatar_url }}" alt="PSN"
              class="w-10 h-10 rounded-full border border-gray-700" />
       {% else %}
         <span class="text-3xl">🎮</span>

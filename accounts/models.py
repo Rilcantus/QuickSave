@@ -41,5 +41,12 @@ class User(AbstractUser):
     # Subscription
     is_pro = models.BooleanField(default=False)
 
+    @property
+    def psn_avatar_url(self):
+        """Return PSN avatar URL forced to HTTPS."""
+        if self.psn_avatar:
+            return self.psn_avatar.replace('http://', 'https://', 1)
+        return ''
+
     def __str__(self):
         return self.username
