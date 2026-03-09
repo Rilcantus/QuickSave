@@ -39,10 +39,28 @@ def register_view(request):
         user = form.save()
         login(request, user)
         messages.success(request, f"Welcome to QuickSave, {user.username}!")
-        return redirect('home')
+        return redirect('onboarding')
     elif request.method == 'POST':
         messages.error(request, "Please fix the errors below.")
     return render(request, 'accounts/register.html', {'form': form})
+
+
+@login_required
+def onboarding(request):
+    user = request.user
+    has_game = user.games.exists()
+    has_platform = any([
+        user.steam_id,
+        user.xbox_id,
+        user.psn_username,
+        user.discord_id,
+    ])
+    if has_game and has_platform:
+        return redirect('dashboard')
+    return render(request, 'accounts/onboarding.html', {
+        'has_game': has_game,
+        'has_platform': has_platform,
+    })
 
 
 def login_view(request):

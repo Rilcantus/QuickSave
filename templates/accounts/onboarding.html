@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Get Started — QuickSave{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto py-8">
+
+  <div class="text-center mb-10">
+    <p class="text-4xl mb-3">💾</p>
+    <h1 class="text-2xl font-bold text-white mb-2">Let's get you set up</h1>
+    <p class="text-gray-400 text-sm">Two quick steps and you're ready to start tracking.</p>
+  </div>
+
+  <!-- Step 1: Add a game -->
+  <div class="bg-gray-900 border {% if has_game %}border-brand-500/40{% else %}border-gray-800{% endif %} rounded-2xl p-6 mb-4">
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5
+        {% if has_game %}bg-brand-500/20 text-brand-400{% else %}bg-gray-800 text-gray-400{% endif %}">
+        {% if has_game %}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        {% else %}
+          <span class="text-sm font-bold">1</span>
+        {% endif %}
+      </div>
+      <div class="flex-1">
+        <h2 class="text-white font-semibold mb-1">Add your first game</h2>
+        <p class="text-gray-400 text-sm mb-4">Search for any game and add it to your library. QuickSave will track your sessions and journal entries for it.</p>
+        {% if has_game %}
+          <span class="inline-flex items-center gap-1.5 text-brand-400 text-sm font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Done — game added
+          </span>
+        {% else %}
+          <a href="{% url 'game_create' %}"
+             class="inline-block bg-brand-500 hover:bg-brand-600 text-white font-semibold px-5 py-2 rounded-lg transition text-sm">
+            + Add a Game
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Connect a platform -->
+  <div class="bg-gray-900 border {% if has_platform %}border-brand-500/40{% else %}border-gray-800{% endif %} rounded-2xl p-6 mb-8">
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5
+        {% if has_platform %}bg-brand-500/20 text-brand-400{% else %}bg-gray-800 text-gray-400{% endif %}">
+        {% if has_platform %}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        {% else %}
+          <span class="text-sm font-bold">2</span>
+        {% endif %}
+      </div>
+      <div class="flex-1">
+        <h2 class="text-white font-semibold mb-1">Connect a platform <span class="text-gray-500 font-normal text-sm">(optional)</span></h2>
+        <p class="text-gray-400 text-sm mb-4">Link Steam, Xbox, PlayStation, or Discord and QuickSave will automatically start and end sessions when you play.</p>
+        {% if has_platform %}
+          <span class="inline-flex items-center gap-1.5 text-brand-400 text-sm font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Done — platform connected
+          </span>
+        {% else %}
+          <div class="flex flex-wrap gap-2">
+            <a href="{% url 'steam_settings' %}"
+               class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+              Steam
+            </a>
+            <a href="{% url 'xbox_settings' %}"
+               class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+              Xbox
+            </a>
+            <a href="{% url 'psn_settings' %}"
+               class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+              PlayStation
+            </a>
+            <a href="{% url 'discord_settings' %}"
+               class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2 rounded-lg transition">
+              Discord
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom actions -->
+  <div class="flex items-center justify-between">
+    <a href="{% url 'dashboard' %}" class="text-gray-500 hover:text-gray-300 text-sm transition">
+      Skip for now →
+    </a>
+    {% if has_game %}
+      <a href="{% url 'dashboard' %}"
+         class="bg-brand-500 hover:bg-brand-600 text-white font-semibold px-6 py-2.5 rounded-lg transition text-sm">
+        Go to Dashboard →
+      </a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

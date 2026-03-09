@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,6 +7,11 @@ from play_sessions.models import Session
 from .rawg import search_games
 from .models import Game, CustomFieldDefinition, Descriptor
 from .forms import GameForm, CustomFieldDefinitionForm
+
+
+def _safe_json(data):
+    """Serialize to JSON with HTML-unsafe characters escaped for inline <script> use."""
+    return json.dumps(data).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
 
 
 def format_duration(seconds):
@@ -204,7 +210,6 @@ def rawg_search(request):
 @login_required
 def game_stats(request, pk):
     from django.db.models import Sum, Avg, Max, Count
-    import json
 
     game = get_object_or_404(Game, pk=pk, user=request.user)
     sessions = game.sessions.filter(ended_at__isnull=False)
@@ -241,7 +246,6 @@ def game_stats(request, pk):
 @login_required
 def overall_stats(request):
     from django.db.models import Sum
-    import json
 
     games = request.user.games.all()
     sessions = Session.objects.filter(
@@ -268,7 +272,7 @@ def overall_stats(request):
         'weeks_json': json.dumps(weeks),
         'week_counts_json': json.dumps(week_counts),
         'week_durations_json': json.dumps(week_durations),
-        'game_names_json': json.dumps([g.title for g in time_per_game]),
+        'game_names_json': _safe_json([g.title for g in time_per_game]),
         'game_times_json': json.dumps([round((g.total_time or 0) / 3600, 1) for g in time_per_game]),
         'time_per_game': time_per_game,
     })
